@@ -1,0 +1,38 @@
+# ==============================================
+# GIAI ĐOẠN 1: BUILD ỨNG DỤNG
+# Dùng image SDK đầy đủ để biên dịch mã nguồn C#
+# ==============================================
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+# Copy các file định nghĩa thư viện trước (Tận dụng cache layer)
+COPY ["KhuyenCong.API/KhuyenCong.API.csproj", "KhuyenCong.API/"]
+COPY ["KhuyenCong.Service/KhuyenCong.Service.csproj", "KhuyenCong.Service/"]
+COPY ["KhuyenCong.Data/KhuyenCong.Data.csproj", "KhuyenCong.Data/"]
+COPY ["KhuyenCong.Core/KhuyenCong.Core.csproj", "KhuyenCong.Core/"]
+
+# Khôi phục toàn bộ thư viện NuGet
+RUN dotnet restore "KhuyenCong.API/KhuyenCong.API.csproj"
+
+# Copy toàn bộ mã nguồn còn lại
+COPY . .
+
+# Biên dịch và xuất bản ứng dụng (Chế độ Release)
+WORKDIR "/src/KhuyenCong.API"
+RUN dotnet publish "KhuyenCong.API.csproj" -c Release -o /app/publish
+
+# ==============================================
+# GIAI ĐOẠN 2: CHẠY ỨNG DỤNG
+# Chỉ dùng image Runtime nhỏ gọn (Không có SDK)
+# ==============================================
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+WORKDIR /app
+
+# Mở cổng 5005 để Docker Compose kết nối
+EXPOSE 5005
+
+# Copy kết quả đã biên dịch từ giai đoạn 1
+COPY --from=build /app/publish .
+
+# Lệnh khởi động ứng dụng
+ENTRYPOINT ["dotnet", "KhuyenCong.API.dll"]

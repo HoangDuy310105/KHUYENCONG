@@ -1,0 +1,121 @@
+# =================================================================
+# DOCKER COMPOSE — HỆ THỐNG QUẢN LÝ KHUYẾN CÔNG
+# Điều phối 4 container: PostgreSQL + Redis + Backend + Frontend
+# Lệnh chạy: docker-compose up --build
+# =================================================================
+
+services:
+
+  # ---------------------------------------------------------------
+  # SERVICE 1: CƠ SỞ DỮ LIỆU POSTGRESQL
+  # Khởi động đầu tiên, các service khác phải chờ service này sẵn sàng
+  # ---------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: khuyencong_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: KhuyenCongDB
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "123456"
+    ports:
+      # Mở ra ngoài để pgAdmin trên máy host vẫn kết nối được
+      - "5432:5432"
+    volumes:
+      # Lưu dữ liệu vào Volume — Không mất dữ liệu khi tắt container
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - khuyencong_network
+    healthcheck:
+      # Kiểm tra DB đã sẵn sàng nhận kết nối chưa
+      test: ["CMD-SHELL", "pg_isready -U postgres -d KhuyenCongDB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------
+  # SERVICE 2: REDIS CACHE
+  # Khởi động sau PostgreSQL, trước Backend
+  # ---------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: khuyencong_redis
+    restart: unless-stopped
+    ports:
+      # Mở ra ngoài để debug Redis bằng RedisInsight trên máy host
+      - "6379:6379"
+    volumes:
+      # Lưu dữ liệu cache để không mất khi restart
+      - redis_data:/data
+    networks:
+      - khuyencong_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ---------------------------------------------------------------
+  # SERVICE 3: BACKEND .NET 10 API
+  # Chỉ khởi động sau khi PostgreSQL VÀ Redis đã sẵn sàng
+  # ---------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: khuyencong_backend
+    restart: unless-stopped
+    ports:
+      - "5005:5005"
+    environment:
+      # Ghi đè Connection String — Dùng tên service thay vì localhost
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=KhuyenCongDB;Username=postgres;Password=123456;
+      - ConnectionStrings__RedisConnection=redis:6379
+      # Ghi đè JWT Settings
+      - JwtSettings__SecretKey=KhuyenCong_SecretKey_ChinhThuc_Phai_Lon_Hon_256_Bits_De_Ma_Hoa
+      - JwtSettings__Issuer=KhuyenCongAPI
+      - JwtSettings__Audience=KhuyenCongSPA
+      - JwtSettings__ExpiryMinutes=60
+      - ASPNETCORE_ENVIRONMENT=Production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - khuyencong_network
+
+  # ---------------------------------------------------------------
+  # SERVICE 3: FRONTEND REACTJS + NGINX
+  # Khởi động sau cùng, phục vụ giao diện cho người dùng
+  # ---------------------------------------------------------------
+  frontend:
+    build:
+      context: ./KhuyenCong.FE
+      dockerfile: Dockerfile
+    container_name: khuyencong_frontend
+    restart: unless-stopped
+    ports:
+      # Truy cập tại: http://localhost
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - khuyencong_network
+
+# =================================================================
+# VOLUMES — Lưu trữ dữ liệu bền vững
+# =================================================================
+volumes:
+  postgres_data:
+    name: khuyencong_postgres_data
+  redis_data:
+    name: khuyencong_redis_data
+
+# =================================================================
+# NETWORKS — Mạng nội bộ để các container giao tiếp với nhau
+# =================================================================
+networks:
+  khuyencong_network:
+    name: khuyencong_network
+    driver: bridge

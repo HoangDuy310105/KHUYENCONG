@@ -1,0 +1,53 @@
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userprev
+*.userdefaults
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Ob]j/
+[Log]s/
+[T]emp/
+
+# Visual Studio 2015/2017/2019/2022 cache/options directory
+.vs/
+
+# Roslyn cache directory
+*.rsuser
+*.suo
+*.user
+*.userprev
+*.userdefaults
+
+# JetBrains Rider
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# Node (Frontend node_modules)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+.dockerignore
+Docker/
+
+# Local configuration files
+appsettings.Development.json
+
+# Exclude Tai_lieu directory
+Tai_lieu/

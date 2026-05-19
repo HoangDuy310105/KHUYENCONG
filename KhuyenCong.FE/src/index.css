@@ -1,0 +1,54 @@
+/* =============================================
+   BIẾN TOÀN CỤC (CSS Variables)
+   Hệ thống màu sắc Dark Mode cho phần mềm Khuyến Công
+   ============================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Bảng màu nền chính */
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d2e;
+  --bg-card: #1e2235;
+  --bg-hover: #252a40;
+  --bg-sidebar: #13162a;
+
+  /* Màu nhấn chủ đạo */
+  --accent-blue: #4f8ef7;
+  --accent-blue-glow: rgba(79, 142, 247, 0.2);
+  --accent-green: #22d3a5;
+  --accent-green-glow: rgba(34, 211, 165, 0.15);
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #a78bfa;
+
+  /* Màu chữ */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+
+  /* Đường viền */
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(79, 142, 247, 0.5);
+
+  /* Hiệu ứng */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 20px rgba(79, 142, 247, 0.15);
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reset toàn bộ mặc định của trình duyệt */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Thanh cuộn tùy chỉnh (Scrollbar đẹp hơn) */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
