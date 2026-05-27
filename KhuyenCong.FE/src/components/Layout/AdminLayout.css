@@ -1,6 +1,15 @@
 /* ===== CỔNG THÔNG TIN KHUYẾN CÔNG ===== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+:root {
+  --gold: #f59e0b;
+  --text-dark: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --radius-md: 12px;
+  --radius-sm: 6px;
+  --radius-lg: 16px;
+}
 .app-shell {
   font-family: 'Inter', sans-serif;
   display: flex;
@@ -36,35 +45,34 @@
    ================================================================ */
 
 .sidebar-container {
-  background-color: #0F172A;
-  border-right: 1px solid #1E293B;
+  background-color: #11101D;
+  border-right: none;
   display: flex;
   flex-direction: column;
   height: 100vh;
-  width: 256px; /* 64 * 4px */
+  width: 250px;
   flex-shrink: 0;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-header {
-  padding: 1rem;
+  padding: 20px 14px;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
   flex-shrink: 0;
 }
 
 .sidebar-logo {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.5rem;
-  background-color: #ffffff;
-  padding: 0.25rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: #fff;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .sidebar-logo img {
@@ -74,86 +82,81 @@
 }
 
 .sidebar-title-small {
-  font-weight: 700;
-  font-size: 11px;
-  line-height: 1.25;
-  color: #cbd5e1;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 400;
+  font-size: 10px;
+  color: #fff;
+  opacity: 0.8;
+  margin-top: 4px;
 }
 
 .sidebar-title-large {
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 0.025em;
-  color: #ffffff;
-  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
 }
 
 .sidebar-menu-area {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0.75rem;
+  padding-top: 10px;
 }
 
 .menu-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 .menu-section-title {
-  font-size: 10px;
-  color: #64748b;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 0 0.75rem;
-  margin-bottom: 0.5rem;
+  display: none;
 }
 
 .menu-items {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 12px; /* Tăng khoảng cách giữa các mục menu */
 }
 
 .sidebar-nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  color: #94a3b8;
+  gap: 16px;
+  padding: 12px 14px;
+  margin: 0 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  color: #fff;
   text-decoration: none;
+  background-color: transparent;
+  outline: none; /* Tránh viền trắng khi click */
 }
 
 .sidebar-nav-item:hover {
-  color: #e2e8f0;
-  background-color: rgba(30, 41, 59, 0.5);
+  color: #fff;
+  background-color: #1d1b31;
 }
 
 .sidebar-nav-item.active {
-  color: #818cf8;
-  background-color: rgba(99, 102, 241, 0.1);
+  color: #fff;
+  background-color: #1d1b31;
+  font-weight: 500;
 }
 
 .nav-icon {
-  width: 1.25rem;
+  width: 20px;
   text-align: center;
   font-size: 18px;
-  color: #64748b;
-  transition: color 0.2s ease;
+  color: #fff;
+  transition: color 0.3s ease;
 }
 
 .sidebar-nav-item:hover .nav-icon {
-  color: #cbd5e1;
+  color: #fff;
 }
 
 .sidebar-nav-item.active .nav-icon {
-  color: #818cf8;
+  color: #fff;
 }
 
 .nav-badge {
@@ -168,76 +171,22 @@
 }
 
 .sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  background-color: #0B1120;
+  padding: 10px 0;
+  background: #11101D;
   flex-shrink: 0;
+  margin-top: auto;
 }
 
-.footer-account {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.account-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 9999px;
-  color: #818cf8;
-  background-color: rgba(99, 102, 241, 0.2);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 14px;
-  flex-shrink: 0;
-}
-
-.account-info {
-  overflow: hidden;
-}
-
-.account-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: #e2e8f0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.account-role {
-  font-size: 11px;
-  font-weight: 500;
-  color: #64748b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.btn-logout {
+.btn-action-sidebar {
   width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fb7185;
-  background-color: rgba(244, 63, 94, 0.1);
-  border: 1px solid rgba(244, 63, 94, 0.1);
-  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
   cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  outline: none;
 }
 
-.btn-logout:hover {
-  background-color: rgba(244, 63, 94, 0.2);
-}
 
 /* --------------------------------------------- */
 /* TÙY CHỈNH THANH CUỘN (SCROLLBAR) SIDEBAR */

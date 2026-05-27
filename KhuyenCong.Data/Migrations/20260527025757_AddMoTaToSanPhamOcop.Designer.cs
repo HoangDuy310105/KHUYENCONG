@@ -4,6 +4,7 @@ using System.Text.Json;
 using KhuyenCong.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KhuyenCong.Data.Migrations
 {
     [DbContext(typeof(KhuyenCongDbContext))]
-    partial class KhuyenCongDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260527025757_AddMoTaToSanPhamOcop")]
+    partial class AddMoTaToSanPhamOcop
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,15 +172,6 @@ namespace KhuyenCong.Data.Migrations
                             LoaiDonVi = 4,
                             MaSoThue = "0101010101",
                             TenDonVi = "Trung tâm Khuyến công Quốc gia"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000002"),
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DiaChi = "Tỉnh/TP",
-                            LoaiDonVi = 4,
-                            MaSoThue = "0202020202",
-                            TenDonVi = "Sở Công Thương"
                         });
                 });
 
@@ -430,16 +424,6 @@ namespace KhuyenCong.Data.Migrations
                             PasswordHash = "admin@123",
                             Role = 4,
                             Username = "admin"
-                        },
-                        new
-                        {
-                            Id = new Guid("b2222222-2222-2222-2222-222222222222"),
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DonViId = new Guid("00000000-0000-0000-0000-000000000002"),
-                            IsActive = true,
-                            PasswordHash = "so@123",
-                            Role = 2,
-                            Username = "canboso"
                         });
                 });
 

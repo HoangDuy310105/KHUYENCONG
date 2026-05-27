@@ -26,4 +26,5 @@ public class DeAnDto
     // Thông tin mở rộng (tùy chọn)
     public string? TenLinhVuc { get; set; }
     public string? TenDonViThuHuong { get; set; }
+    public string? DiaChi { get; set; }
 }

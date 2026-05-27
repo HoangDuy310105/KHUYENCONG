@@ -276,3 +276,41 @@
   font-weight: 600;
 }
 .btn-action:hover { background: #dbeafe; }
+
+/* BỔ SUNG CHO CƠ SỞ CNNT DASHBOARD */
+.coso-header-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-create-proposal {
+  background-color: #15803d;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-create-proposal:hover {
+  background-color: #166534;
+}
+
+.stat-card.gray { border-left-color: #94a3b8; }
+.stat-card.orange { border-left-color: #f97316; }
+
+.stat-icon.gray { background-color: #f1f5f9; color: #64748b; }
+.stat-icon.orange { background-color: #fff7ed; color: #f97316; }
+
+.status-badge.gray { background-color: #f1f5f9; color: #475569; border-color: transparent; }
+.status-badge.orange { background-color: #fff7ed; color: #c2410c; border-color: transparent; }
+.status-badge.red { background-color: #fef2f2; color: #b91c1c; border-color: transparent; }
+.status-badge.green { background-color: #ecfdf5; color: #047857; border-color: transparent; }
+.status-badge.blue { background-color: #eff6ff; color: #1d4ed8; border-color: transparent; }

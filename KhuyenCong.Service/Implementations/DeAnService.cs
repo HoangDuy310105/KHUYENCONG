@@ -82,6 +82,13 @@ public class DeAnService : IDeAnService
             dto.TenLinhVuc = linhVuc?.TenLinhVuc;
         }
 
+        if (entity.DonViThuHuongId != Guid.Empty)
+        {
+            var donVi = await _unitOfWork.DonVis.GetByIdAsync(entity.DonViThuHuongId);
+            dto.TenDonViThuHuong = donVi?.TenDonVi;
+            dto.DiaChi = donVi?.DiaChi;
+        }
+
         return dto;
     }
 
@@ -111,6 +118,7 @@ public class DeAnService : IDeAnService
             {
                 var donVi = await _unitOfWork.DonVis.GetByIdAsync(dto.DonViThuHuongId);
                 dto.TenDonViThuHuong = donVi?.TenDonVi;
+                dto.DiaChi = donVi?.DiaChi;
             }
         }
 
@@ -151,6 +159,11 @@ public class DeAnService : IDeAnService
         if (entity == null) return false;
 
         entity.TrangThai = (KhuyenCong.Core.Enums.TrangThaiDeAn)trangThaiMoi;
+
+        if (!string.IsNullOrEmpty(ghiChu))
+        {
+            entity.GhiChu = ghiChu;
+        }
 
         // TODO: Lưu vết Audit Log với Ghi chú
 

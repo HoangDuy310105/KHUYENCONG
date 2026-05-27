@@ -17,6 +17,7 @@ import DeAnListPage from './pages/DeAn/DeAnListPage';
 import DeAnFormPage from './pages/DeAn/DeAnFormPage';
 import GiaiNganPage from './pages/GiaiNgan/GiaiNganPage';
 import OcopPage from './pages/Ocop/OcopPage';
+import ProfilePage from './pages/Profile/ProfilePage';
 
 /* Bộ bảo vệ Route: Nếu chưa có Token thì tự động chuyển về trang đăng nhập */
 function PrivateRoute({ children }) {
@@ -90,7 +91,8 @@ function App() {
           {/* Hệ thống */}
           <Route path="nguoi-dung"   element={<ComingSoon icon="👥" label="Quản trị Người dùng" />} />
           <Route path="nhat-ky"      element={<ComingSoon icon="📜" label="Nhật ký hệ thống" />} />
-          <Route path="tai-khoan"    element={<ComingSoon icon="⚙️" label="Tài khoản cá nhân" />} />
+          <Route path="tai-khoan"    element={<Navigate to="/profile" replace />} />
+          <Route path="profile"      element={<ProfilePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

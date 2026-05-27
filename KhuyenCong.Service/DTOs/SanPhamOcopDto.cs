@@ -25,6 +25,7 @@ public class SanPhamOcopDto
     public string QuyetDinhCongNhan { get; set; } = string.Empty;
 
     public string? HinhAnh { get; set; }
+    public string? MoTa { get; set; }
 
     public int LoaiSanPham { get; set; } = 1;
     public int TrangThai { get; set; } = 1;

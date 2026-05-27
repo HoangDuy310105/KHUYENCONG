@@ -244,6 +244,7 @@
     gap: 8px;
     opacity: 0;
     transition: opacity 0.2s;
+    z-index: 10;
 }
 
 .ocop-card:hover .ocop-card-actions {
@@ -400,4 +401,208 @@
         opacity: 1;
         transform: translateY(0) scale(1);
     }
+}
+
+/* ===== VOTE MODAL STYLES ===== */
+.vote-modal-container {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modal-fade-in 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.vote-modal-header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    padding: 24px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 16px 16px 0 0;
+}
+
+.vote-modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vote-modal-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.vote-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.vote-split-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    background: white;
+}
+
+.vote-product-preview {
+    padding: 32px;
+    background: #f8fafc;
+    border-right: 1px solid #e2e8f0;
+}
+
+.vote-product-img {
+    width: 100%;
+    height: 240px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+    border: 2px solid white;
+}
+
+.vote-product-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.vote-product-donvi {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #475569;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.vote-product-desc {
+    color: #64748b;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px dashed #cbd5e1;
+}
+
+.vote-decision-panel {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+}
+
+.vote-panel-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.vote-cards-container {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.vote-card {
+    flex: 1;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.vote-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.vote-card.pass {
+    color: #16a34a;
+}
+
+.vote-card.pass.selected {
+    border-color: #16a34a;
+    background: #f0fdf4;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
+}
+
+.vote-card.fail {
+    color: #dc2626;
+}
+
+.vote-card.fail.selected {
+    border-color: #dc2626;
+    background: #fef2f2;
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+}
+
+.vote-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.vote-form-group {
+    margin-bottom: 16px;
+}
+
+.vote-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.95rem;
+}
+
+.vote-form-group input,
+.vote-form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.vote-form-group input:focus,
+.vote-form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.vote-modal-footer {
+    padding: 20px 32px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    border-radius: 0 0 16px 16px;
 }

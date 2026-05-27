@@ -29,21 +29,25 @@ const NAV_BY_ROLE = {
   ],
   // Role 2: Sở Công Thương
   '2': [
-    { section: 'Hệ thống chính', items: [{ label: 'Dashboard', icon: 'fa-chart-pie', path: '/dashboard' }] },
+    { section: 'Hệ thống chính', items: [{ label: 'Dashboard Tỉnh/TP', icon: 'fa-chart-pie', path: '/dashboard' }] },
     {
-      section: 'Quản lý Đề án', items: [
-        { label: 'Quản lý Đề án', icon: 'fa-list-check', path: '/de-an' },
+      section: 'Nghiệp vụ Đề án', items: [
+        { label: 'Thẩm định & Giám sát', icon: 'fa-list-check', path: '/de-an' },
       ]
     },
     {
       section: 'Tài chính', items: [
-        { label: 'Giải ngân Kinh phí', icon: 'fa-vault', path: '/giai-ngan' },
+        { label: 'Duyệt Giải ngân', icon: 'fa-vault', path: '/giai-ngan' },
       ]
     },
     {
       section: 'Cơ sở dữ liệu', items: [
-        { label: 'Doanh nghiệp', icon: 'fa-shop', path: '/don-vi' },
+        { label: 'Doanh nghiệp địa bàn', icon: 'fa-shop', path: '/don-vi' },
         { label: 'Sản phẩm OCOP', icon: 'fa-award', path: '/ocop' },
+      ]
+    },
+    {
+      section: 'Báo cáo', items: [
         { label: 'Báo cáo TT34', icon: 'fa-chart-line', path: '/bao-cao' },
       ]
     },
@@ -220,7 +224,7 @@ function AdminLayout() {
   };
 
   return (
-    <div className={`app-shell flex h-screen overflow-hidden ${collapsed ? 'sidebar-collapsed' : ''}`}>
+    <div className={`app-shell flex h-screen overflow-hidden ${collapsed ? 'sidebar-collapsed' : ''} ${roleKey === '1' ? 'theme-coso' : ''}`}>
 
       {/* ==================== SIDEBAR ==================== */}
       {/* ==================== SIDEBAR ==================== */}
@@ -242,7 +246,6 @@ function AdminLayout() {
           <nav>
             {navItems.map(section => (
               <div key={section.section} className="menu-section">
-                <div className="menu-section-title">{section.section}</div>
                 <div className="menu-items">
                   {section.items.map(item => (
                     <NavLink
@@ -263,19 +266,16 @@ function AdminLayout() {
 
         {/* ACCOUNT AREA (Fixed bottom) */}
         <div className="sidebar-footer">
-          <div className="footer-account">
-            <div className="account-avatar">
-              {username.charAt(0).toUpperCase()}
-            </div>
-            <div className="account-info">
-              <div className="account-name">{username}</div>
-              <div className="account-role">{roleInfo.name}</div>
-            </div>
+          <div className="menu-items">
+            <button onClick={() => navigate('/profile')} className="sidebar-nav-item btn-action-sidebar">
+              <i className="fa-solid fa-gear nav-icon"></i>
+              <span>Cài đặt hồ sơ</span>
+            </button>
+            <button onClick={handleLogout} className="sidebar-nav-item btn-action-sidebar">
+              <i className="fa-solid fa-arrow-right-from-bracket nav-icon"></i>
+              <span>Đăng xuất</span>
+            </button>
           </div>
-          <button onClick={handleLogout} className="btn-logout">
-            <i className="fa-solid fa-power-off"></i>
-            <span>Đăng xuất</span>
-          </button>
         </div>
       </aside>
 
@@ -300,28 +300,33 @@ function AdminLayout() {
                 <input type="text" placeholder="Tìm kiếm toàn hệ thống..." />
               </div>
               <div style={{ width: '1px', height: '28px', background: '#e2e8f0' }}></div>
-              <div className="relative">
-                <button className="text-slate-400 hover:text-indigo-600 transition-colors" onClick={() => setShowNotifDropdown(!showNotifDropdown)}>
+              <div className="notif-wrapper">
+                <button className="text-slate-400 hover:text-indigo-600 transition-colors relative" onClick={() => setShowNotifDropdown(!showNotifDropdown)}>
                   <i className="fa-solid fa-bell text-lg"></i>
                   {pendingUsers.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-rose-500" style={{ border: '2px solid #ffffff' }}></span>}
                 </button>
                 {showNotifDropdown && (
-                  <div className="absolute right-0 mt-3 w-80 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden">
-                    <div className="p-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                      <span className="font-bold text-xs text-slate-700">Yêu cầu phê duyệt tài khoản</span>
-                      <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">{pendingUsers.length}</span>
+                  <div className="notif-dropdown">
+                    <div className="notif-header">
+                      <span>Yêu cầu phê duyệt tài khoản</span>
+                      <span className="notif-badge-count">{pendingUsers.length}</span>
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
+                    <div className="notif-list custom-scrollbar">
                       {pendingUsers.length === 0 ? (
-                        <div className="p-4 text-center text-xs text-slate-500">Không có yêu cầu nào.</div>
+                        <div className="notif-empty">
+                          <i className="fa-solid fa-check-circle" style={{fontSize:'24px', opacity: 0.5}}></i>
+                          Không có yêu cầu nào.
+                        </div>
                       ) : (
                         pendingUsers.map(user => (
-                          <div key={user.id} className="p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                            <div className="text-xs font-bold text-slate-800">{user.username}</div>
-                            <div className="text-[10px] text-slate-500 mt-0.5 mb-2 truncate">{user.tenDonVi || 'Đang tải...'}</div>
-                            <div className="flex gap-2">
-                              <button onClick={() => handleApprove(user.id)} className="flex-1 py-1.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-bold hover:bg-indigo-100">Duyệt</button>
-                              <button onClick={() => handleViewDetails(user)} className="flex-1 py-1.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold hover:bg-slate-200">Chi tiết</button>
+                          <div key={user.id} className="notif-item">
+                            <div className="notif-user-info">
+                              <div className="notif-username">{user.username}</div>
+                              <div className="notif-company">{user.tenDonVi || 'Đang tải...'}</div>
+                            </div>
+                            <div className="notif-actions">
+                              <button onClick={() => handleApprove(user.id)} className="btn-notif btn-notif-approve flex-1 justify-center">Duyệt</button>
+                              <button onClick={() => handleViewDetails(user)} className="btn-notif btn-notif-view flex-1 justify-center">Chi tiết</button>
                             </div>
                           </div>
                         ))
@@ -330,7 +335,12 @@ function AdminLayout() {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2 pl-4" style={{ borderLeft: '1px solid #e2e8f0' }}>
+              <div 
+                className="flex items-center gap-2 pl-4 cursor-pointer hover:opacity-80 transition-opacity" 
+                style={{ borderLeft: '1px solid #e2e8f0' }}
+                onClick={() => navigate('/profile')}
+                title="Xem hồ sơ cá nhân"
+              >
                 <div className="text-right">
                   <div className="text-sm font-black text-slate-800">{roleInfo.tag}</div>
                   <div className="text-[10px] font-bold text-slate-500">{roleInfo.name}</div>

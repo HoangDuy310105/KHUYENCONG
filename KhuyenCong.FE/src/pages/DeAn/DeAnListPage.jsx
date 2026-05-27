@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Plus, FileSpreadsheet, Search, ChevronDown,
   Eye, Wrench, CheckCircle, XCircle, Clock,
-  FolderOpen, RefreshCw, X, HelpCircle, Info
+  FolderOpen, RefreshCw, X, HelpCircle, Info, FileText
 } from 'lucide-react';
 import api from '../../services/api';
 import * as XLSX from 'xlsx';
@@ -177,6 +177,42 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
     }
   };
 
+  const handleTuChoi = async () => {
+    const lyDo = await showPrompt('Nhập lý do từ chối hồ sơ:');
+    if (lyDo === null) return;
+    if (!lyDo.trim()) {
+      await showAlert('Vui lòng nhập lý do từ chối.');
+      return;
+    }
+    try {
+      await api.post(`/dean/${item.id}/tu-choi`, JSON.stringify(lyDo), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      await showAlert('Đã từ chối hồ sơ thành công.');
+      onRefresh();
+    } catch (err) {
+      console.error(err);
+      await showAlert('Lỗi khi từ chối hồ sơ.');
+    }
+  };
+
+  const handleNghiemThu = async () => {
+    // Tạm thời mock file upload (Có thể tích hợp Modal chọn file sau)
+    const mockFileUrl = "/uploads/mock-bien-ban-nghiem-thu.pdf";
+    if (!await showConfirm(`Xác nhận đã có Biên bản nghiệm thu và tiến hành nghiệm thu đề án?`)) return;
+    
+    try {
+      await api.post(`/dean/${item.id}/nghiem-thu`, JSON.stringify(mockFileUrl), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      await showAlert('Đã nghiệm thu đề án thành công!');
+      onRefresh();
+    } catch (err) {
+      console.error(err);
+      await showAlert('Lỗi khi nghiệm thu đề án.');
+    }
+  };
+
   // Logic hiển thị hành động khả dụng theo vai trò và trạng thái
   const isCoSo = userRole === 'Role_CoSo' || userRole === '1';
   const isSo = userRole === 'Role_So' || userRole === '2';
@@ -207,11 +243,10 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
         <ChevronDown size={12} className="chevron" />
       </button>
 
-      {hasActions && (
-        <div className="action-menu" onClick={e => e.stopPropagation()}>
-          <div className="action-menu-header">Hành động khả dụng</div>
-          <div className="action-menu-body">
-            <button
+      <div className="action-menu" onClick={e => e.stopPropagation()}>
+        <div className="action-menu-header">Hành động khả dụng</div>
+        <div className="action-menu-body">
+          <button
               className="action-menu-item"
               onClick={() => { onViewDetail(item); }}
             >
@@ -245,6 +280,13 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
                   <div className="action-icon danger"><XCircle size={14} /></div>
                   Yêu cầu sửa
                 </button>
+                <button 
+                  className="action-menu-item danger"
+                  onClick={() => { handleTuChoi(); }}
+                >
+                  <div className="action-icon danger"><XCircle size={14} /></div>
+                  Từ chối đề án
+                </button>
               </>
             )}
 
@@ -264,6 +306,13 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
                   <div className="action-icon danger"><XCircle size={14} /></div>
                   Yêu cầu sửa
                 </button>
+                <button 
+                  className="action-menu-item danger"
+                  onClick={() => { handleTuChoi(); }}
+                >
+                  <div className="action-icon danger"><XCircle size={14} /></div>
+                  Từ chối đề án
+                </button>
               </>
             )}
 
@@ -280,7 +329,7 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
             {showNghiemThu && (
               <button 
                 className="action-menu-item success"
-                onClick={() => { handleDuyet(); }}
+                onClick={() => { handleNghiemThu(); }}
               >
                 <div className="action-icon success"><CheckCircle size={14} /></div>
                 Nghiệm thu đề án
@@ -304,7 +353,6 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
             )}
           </div>
         </div>
-      )}
     </div>
   );
 }
@@ -772,7 +820,12 @@ function DeAnListPage() {
                 </div>
                 <div className="dm-card-cell">
                   <div className="dm-cell-label">NGUỒN KINH PHÍ</div>
-                  <div className="dm-cell-value">{selectedItem.nguonKinhPhi || 'NS Trung ương'}</div>
+                  <div className="dm-cell-value">
+                    {selectedItem.nguonKinhPhi === 1 ? 'NS Trung ương' : 
+                     selectedItem.nguonKinhPhi === 2 ? 'NS Địa phương' : 
+                     selectedItem.nguonKinhPhi === 3 ? 'NS Kết hợp' : 
+                     selectedItem.nguonKinhPhi === 4 ? 'Khác' : '—'}
+                  </div>
                 </div>
                 <div className="dm-card-cell">
                   <div className="dm-cell-label">ĐỊA ĐIỂM</div>
@@ -807,6 +860,18 @@ function DeAnListPage() {
                 <span className="dm-status-label">Trạng thái hiện tại:</span>
                 <span className="dm-status-badge"><StatusBadge status={selectedItem.trangThai}/></span>
               </div>
+
+              {/* Box hiển thị Lý do trả về / Yêu cầu bổ sung */}
+              {(selectedItem.trangThai === 3 || selectedItem.trangThai === 4) && selectedItem.ghiChu && (
+                <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px' }}>
+                  <h4 style={{ color: '#b91c1c', margin: '0 0 8px 0', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Info size={16} /> Lý do {selectedItem.trangThai === 3 ? 'Yêu cầu bổ sung hồ sơ' : 'Từ chối phê duyệt'}:
+                  </h4>
+                  <p style={{ margin: 0, color: '#7f1d1d', fontSize: '14px', whiteSpace: 'pre-wrap' }}>
+                    {selectedItem.ghiChu}
+                  </p>
+                </div>
+              )}
 
               {/* Tiến độ giải ngân */}
               {selectedItem.trangThai >= 5 && (() => {

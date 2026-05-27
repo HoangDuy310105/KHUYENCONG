@@ -1,7 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Download, Edit2, Trash2, Award, Star, Building2, Calendar } from 'lucide-react';
-import axios from 'axios';
+import { Search, Plus, Download, Edit2, Trash2, Award, Star, Building2, Calendar, CheckCircle, XCircle, X } from 'lucide-react';
+import api from '../../services/api';
+import confetti from 'canvas-confetti';
 import './OcopPage.css';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', color: 'red', backgroundColor: '#fee2e2', height: '100vh' }}>
+            <h2>Đã có lỗi xảy ra trong giao diện React:</h2>
+            <pre style={{ whiteSpace: 'pre-wrap' }}>{this.state.error && this.state.error.toString()}</pre>
+        </div>
+      );
+    }
+    return this.props.children; 
+  }
+}
 
 const CAP_CHUNG_NHAN_OPTIONS = [
     { value: 'Cấp Huyện', label: 'Cấp Huyện', style: 'cert-huyen' },
@@ -12,18 +34,51 @@ const CAP_CHUNG_NHAN_OPTIONS = [
 
 const TABS = ['Tất cả', 'Sản phẩm OCOP', 'CNNT Tiêu biểu (Đang dự thi)', 'CNNT Tiêu biểu (Đạt bình chọn)'];
 
-const OcopPage = () => {
+const OcopPageContent = () => {
+    const role = localStorage.getItem('role');
     const [products, setProducts] = useState([]);
     const [total, setTotal] = useState(0);
+    const [activeTab, setActiveTab] = useState(TABS[0]);
     const [search, setSearch] = useState('');
-    const [activeTab, setActiveTab] = useState('Tất cả');
     const [capChungNhanFilter, setCapChungNhanFilter] = useState('');
+    const [toast, setToast] = useState({ message: '', type: '', visible: false });
+
+    const showToast = (message, type = 'success') => {
+        setToast({ message, type, visible: true });
+        
+        if (type === 'success') {
+            const duration = 2000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100000 };
+            
+            const randomInRange = (min, max) => Math.random() * (max - min) + min;
+            
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+                const particleCount = Math.floor(40 * (timeLeft / duration));
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
+        }
+
+        setTimeout(() => setToast({ message: '', type: '', visible: false }), 3000);
+    };
     const [donVis, setDonVis] = useState([]);
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [voteFormData, setVoteFormData] = useState({
+        trangThai: 2, // Mặc định là Đạt bình chọn
+        namBinhChon: new Date().getFullYear(),
+        qD_CongNhan: '',
+        ngayCongNhan: ''
+    });
     const [formData, setFormData] = useState({
         tenSanPham: '',
         donViId: '',
@@ -57,11 +112,7 @@ const OcopPage = () => {
                 query += `&loaiSanPham=2&trangThai=2`;
             }
             
-            const url = `http://localhost:5242/api/SanPhamOcop${query}`;
-            
-            const response = await axios.get(url, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get(`/SanPhamOcop${query}`);
             
             setProducts(response.data.data);
             setTotal(response.data.total);
@@ -72,11 +123,9 @@ const OcopPage = () => {
 
     const fetchDonVis = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:5242/api/DonVi?page=1&pageSize=100', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setDonVis(response.data.data);
+            const response = await api.get('/DonVi?page=1&pageSize=100');
+            const donViData = response.data?.data || response.data?.Data || response.data?.items || response.data?.Items || (Array.isArray(response.data) ? response.data : []);
+            setDonVis(donViData);
         } catch (error) {
             console.error('Error fetching DonVis:', error);
         }
@@ -99,7 +148,8 @@ const OcopPage = () => {
                 qD_CongNhan: item.quyetDinhCongNhan,
                 ngayCongNhan: item.ngayCongNhan ? item.ngayCongNhan.split('T')[0] : '',
                 hinhAnh: item.hinhAnh || '',
-                trangThai: item.trangThai || 1,
+                moTa: item.moTa || '',
+                trangThai: item.trangThai !== undefined ? item.trangThai : 0,
                 namBinhChon: item.namBinhChon || new Date().getFullYear()
             });
             setSelectedItem(item);
@@ -113,7 +163,8 @@ const OcopPage = () => {
                 qD_CongNhan: '',
                 ngayCongNhan: '',
                 hinhAnh: '',
-                trangThai: 1,
+                moTa: '',
+                trangThai: 0,
                 namBinhChon: new Date().getFullYear()
             });
             setSelectedItem(null);
@@ -121,7 +172,7 @@ const OcopPage = () => {
         setIsModalOpen(true);
     };
 
-    const handleSave = async () => {
+    const handleSave = async (isSubmit = false) => {
         try {
             const token = localStorage.getItem('token');
             const payload = {
@@ -132,40 +183,72 @@ const OcopPage = () => {
                 quyetDinhCongNhan: formData.qD_CongNhan,
                 ngayCongNhan: formData.ngayCongNhan ? new Date(formData.ngayCongNhan).toISOString() : null,
                 hinhAnh: formData.hinhAnh,
+                moTa: formData.moTa,
                 loaiSanPham: Number(formData.loaiSanPham),
-                trangThai: Number(formData.loaiSanPham) === 2 ? Number(formData.trangThai) : 1,
+                trangThai: isSubmit ? 1 : Number(formData.trangThai),
                 namBinhChon: Number(formData.loaiSanPham) === 2 ? Number(formData.namBinhChon) : null
             };
 
             if (selectedItem) {
-                await axios.put(`http://localhost:5242/api/SanPhamOcop/${selectedItem.id}`, payload, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.put(`/SanPhamOcop/${selectedItem.id}`, payload);
             } else {
-                await axios.post('http://localhost:5242/api/SanPhamOcop', payload, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.post('/SanPhamOcop', payload);
             }
             setIsModalOpen(false);
             fetchProducts();
+            if (isSubmit) {
+                showToast('Nộp hồ sơ dự thi thành công!');
+            } else {
+                showToast(role === '1' ? 'Lưu nháp thành công!' : 'Lưu sản phẩm thành công!');
+            }
         } catch (error) {
             console.error('Error saving:', error);
-            alert('Có lỗi xảy ra khi lưu dữ liệu.');
+            showToast('Có lỗi xảy ra khi lưu dữ liệu.', 'error');
+        }
+    };
+
+    const handleOpenVoteModal = (item) => {
+        setSelectedItem(item);
+        setVoteFormData({
+            trangThai: 2,
+            namBinhChon: item.namBinhChon || new Date().getFullYear(),
+            qD_CongNhan: item.quyetDinhCongNhan || '',
+            ngayCongNhan: item.ngayCongNhan ? item.ngayCongNhan.split('T')[0] : ''
+        });
+        setIsVoteModalOpen(true);
+    };
+
+    const handleVoteSubmit = async () => {
+        if (!selectedItem) return;
+        try {
+            const payload = {
+                ...selectedItem,
+                trangThai: voteFormData.trangThai,
+                namBinhChon: voteFormData.trangThai === 2 ? Number(voteFormData.namBinhChon) : null,
+                quyetDinhCongNhan: voteFormData.trangThai === 2 ? voteFormData.qD_CongNhan : null,
+                ngayCongNhan: (voteFormData.trangThai === 2 && voteFormData.ngayCongNhan) ? new Date(voteFormData.ngayCongNhan).toISOString() : null
+            };
+
+            await api.put(`/SanPhamOcop/${selectedItem.id}`, payload);
+            setIsVoteModalOpen(false);
+            fetchProducts();
+            showToast('Đã lưu kết quả bình chọn thành công!');
+        } catch (error) {
+            console.error('Error submitting vote:', error);
+            showToast('Có lỗi xảy ra khi lưu kết quả bình chọn.', 'error');
         }
     };
 
     const handleDelete = async () => {
         if (!selectedItem) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5242/api/SanPhamOcop/${selectedItem.id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/SanPhamOcop/${selectedItem.id}`);
             setIsDeleteModalOpen(false);
             fetchProducts();
+            showToast('Đã xóa sản phẩm thành công!');
         } catch (error) {
             console.error('Error deleting:', error);
-            alert('Có lỗi xảy ra khi xóa dữ liệu.');
+            showToast('Có lỗi xảy ra khi xóa dữ liệu.', 'error');
         }
     };
 
@@ -184,6 +267,36 @@ const OcopPage = () => {
 
     return (
         <div className="ocop-container">
+            {/* Center Modal Notification */}
+            {toast.visible && (
+                <div className="ocop-modal-overlay" style={{ zIndex: 100000 }}>
+                    <div className="ocop-modal" style={{ maxWidth: '400px', textAlign: 'center', padding: '0' }}>
+                        <div style={{ padding: '32px 24px 24px' }}>
+                            <div style={{ margin: '0 auto 16px', display: 'flex', justifyContent: 'center' }}>
+                                {toast.type === 'error' ? (
+                                    <XCircle size={64} color="#ef4444" />
+                                ) : (
+                                    <CheckCircle size={64} color="#10b981" />
+                                )}
+                            </div>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#0f172a', marginBottom: '8px' }}>
+                                {toast.type === 'error' ? 'Thất bại!' : 'Thành công!'}
+                            </h2>
+                            <p style={{ color: '#475569', margin: '0' }}>{toast.message}</p>
+                        </div>
+                        <div className="ocop-modal-footer" style={{ justifyContent: 'center', background: '#f8fafc' }}>
+                            <button 
+                                onClick={() => setToast({ ...toast, visible: false })}
+                                className="ocop-modal-btn save"
+                                style={{ width: '120px' }}
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="ocop-header-section">
                 <div className="ocop-title-group">
                     <h1>Sản phẩm OCOP & CNNT Tiêu biểu</h1>
@@ -248,9 +361,15 @@ const OcopPage = () => {
                     products.map(item => (
                         <div key={item.id} className="ocop-card">
                             <div className="ocop-card-actions">
-                                <div className="action-icon edit" onClick={() => handleOpenModal(item)}>
-                                    <Edit2 size={16} />
-                                </div>
+                                {role !== '1' && item.loaiSanPham === 2 && item.trangThai === 1 ? (
+                                    <div className="action-icon" onClick={() => handleOpenVoteModal(item)} style={{ background: '#1e40af', color: 'white', border: 'none' }} title="Bình chọn CNNT">
+                                        <Award size={16} />
+                                    </div>
+                                ) : (
+                                    <div className="action-icon edit" onClick={() => handleOpenModal(item)}>
+                                        <Edit2 size={16} />
+                                    </div>
+                                )}
                                 <div className="action-icon delete" onClick={() => { setSelectedItem(item); setIsDeleteModalOpen(true); }}>
                                     <Trash2 size={16} />
                                 </div>
@@ -258,7 +377,11 @@ const OcopPage = () => {
                             
                             <div className="ocop-card-img" style={{ backgroundImage: `url(${item.hinhAnh || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=300'})` }}>
                                 <div className="ocop-card-top-overlay">
-                                    {item.loaiSanPham === 2 ? (
+                                    {item.trangThai === 0 ? (
+                                        <span className="ocop-cert-badge" style={{ backgroundColor: '#64748b', color: 'white' }}>
+                                            Bản nháp
+                                        </span>
+                                    ) : item.loaiSanPham === 2 ? (
                                         <span className={`ocop-cert-badge ${item.trangThai === 2 ? 'cert-quocgia' : 'cert-huyen'}`}>
                                             {item.trangThai === 2 ? 'CNNT Đạt Bình Chọn' : 'Đăng Ký Dự Thi CNNT'}
                                         </span>
@@ -271,8 +394,10 @@ const OcopPage = () => {
                             </div>
                             
                             <div className="ocop-card-body">
-                                <div style={{ marginBottom: '8px' }}>
-                                    {item.loaiSanPham === 2 ? (
+                                <div style={{ marginBottom: '8px', minHeight: '20px' }}>
+                                    {item.trangThai === 0 ? (
+                                        <span style={{ fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic' }}>Chưa đánh giá</span>
+                                    ) : item.loaiSanPham === 2 ? (
                                         <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}>
                                             Năm thi: {item.namBinhChon || '---'}
                                         </span>
@@ -286,18 +411,24 @@ const OcopPage = () => {
                                     {item.tenDonVi}
                                 </div>
                                 
-                                <div className="ocop-card-info">
-                                    <div className="info-item">
-                                        <span className="info-label">Năm CN</span>
-                                        <span className="info-value">
-                                            {item.ngayCongNhan ? new Date(item.ngayCongNhan).getFullYear() : '---'}
-                                        </span>
+                                {item.trangThai === 0 ? (
+                                    <div className="ocop-card-info" style={{ justifyContent: 'center' }}>
+                                        <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Chưa nộp hồ sơ</span>
                                     </div>
-                                    <div className="info-item" style={{ textAlign: 'right' }}>
-                                        <span className="info-label">Số QĐ</span>
-                                        <span className="info-value">{item.quyetDinhCongNhan || '---'}</span>
+                                ) : (
+                                    <div className="ocop-card-info">
+                                        <div className="info-item">
+                                            <span className="info-label">Năm CN</span>
+                                            <span className="info-value">
+                                                {item.ngayCongNhan ? new Date(item.ngayCongNhan).getFullYear() : '---'}
+                                            </span>
+                                        </div>
+                                        <div className="info-item" style={{ textAlign: 'right' }}>
+                                            <span className="info-label">Số QĐ</span>
+                                            <span className="info-value">{item.quyetDinhCongNhan || '---'}</span>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     ))
@@ -309,7 +440,11 @@ const OcopPage = () => {
                 <div className="ocop-modal-overlay">
                     <div className="ocop-modal">
                         <div className="ocop-modal-header">
-                            <h2 className="ocop-modal-title">{selectedItem ? "Cập nhật Sản Phẩm" : "Thêm mới Sản Phẩm"}</h2>
+                            <h2 className="ocop-modal-title">
+                                {selectedItem 
+                                    ? (role === '1' ? "Chi tiết đăng ký dự thi" : "Cập nhật Sản Phẩm") 
+                                    : (role === '1' ? "Đăng ký dự thi sản phẩm mới" : "Thêm mới Sản Phẩm")}
+                            </h2>
                         </div>
                         <div className="ocop-modal-body">
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '8px 0' }}>
@@ -327,9 +462,43 @@ const OcopPage = () => {
                         <input 
                             type="text" 
                             placeholder="Nhập URL hình ảnh sản phẩm (vd: https://...)"
-                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginBottom: formData.hinhAnh ? '12px' : '0' }}
                             value={formData.hinhAnh}
                             onChange={(e) => setFormData({...formData, hinhAnh: e.target.value})}
+                        />
+                        {formData.hinhAnh && (
+                            <div style={{
+                                width: '100%',
+                                height: '200px',
+                                borderRadius: '8px',
+                                backgroundColor: '#f8fafc',
+                                border: '1px dashed #cbd5e1',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                                padding: '8px'
+                            }}>
+                                <img 
+                                    src={formData.hinhAnh} 
+                                    alt="Preview" 
+                                    style={{
+                                        maxWidth: '100%',
+                                        maxHeight: '100%',
+                                        objectFit: 'contain',
+                                        borderRadius: '4px'
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Mô Tả Sản Phẩm</label>
+                        <textarea 
+                            placeholder="Nhập thông tin chi tiết: nguyên liệu, quy trình, đặc điểm nổi bật..."
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', resize: 'vertical' }}
+                            value={formData.moTa}
+                            onChange={(e) => setFormData({...formData, moTa: e.target.value})}
                         />
                     </div>
                     <div style={{ display: 'flex', gap: '16px' }}>
@@ -358,14 +527,15 @@ const OcopPage = () => {
                             </select>
                         </div>
                     </div>
-                    {formData.loaiSanPham === 1 && (
+                    {formData.loaiSanPham === 1 && !(role === '1' && formData.trangThai === 0) && (
                         <div style={{ display: 'flex', gap: '16px' }}>
                             <div style={{ flex: 1 }}>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Hạng Sao</label>
                                 <select 
-                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
                                     value={formData.phanHangSao}
                                     onChange={(e) => setFormData({...formData, phanHangSao: e.target.value})}
+                                    disabled={role === '1'}
                                 >
                                     {[3, 4, 5].map(s => (
                                         <option key={s} value={s}>{s} Sao</option>
@@ -375,9 +545,10 @@ const OcopPage = () => {
                             <div style={{ flex: 1 }}>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Cấp Chứng Nhận</label>
                                 <select 
-                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
                                     value={formData.capChungNhan}
                                     onChange={(e) => setFormData({...formData, capChungNhan: e.target.value})}
+                                    disabled={role === '1'}
                                 >
                                     {CAP_CHUNG_NHAN_OPTIONS.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -386,14 +557,15 @@ const OcopPage = () => {
                             </div>
                         </div>
                     )}
-                    {formData.loaiSanPham === 2 && (
+                    {formData.loaiSanPham === 2 && !(role === '1' && formData.trangThai === 0) && (
                         <div style={{ display: 'flex', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
                             <div style={{ flex: 1 }}>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem', color: '#1e3a8a' }}>Trạng thái dự thi *</label>
                                 <select 
-                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
                                     value={formData.trangThai}
                                     onChange={(e) => setFormData({...formData, trangThai: Number(e.target.value)})}
+                                    disabled={role === '1'}
                                 >
                                     <option value={1}>Đăng ký dự thi</option>
                                     <option value={2}>Đạt bình chọn</option>
@@ -404,33 +576,39 @@ const OcopPage = () => {
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem', color: '#1e3a8a' }}>Năm bình chọn *</label>
                                 <input 
                                     type="number" 
-                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
                                     value={formData.namBinhChon}
                                     onChange={(e) => setFormData({...formData, namBinhChon: e.target.value})}
+                                    disabled={role === '1'}
                                 />
                             </div>
                         </div>
                     )}
-                    <div style={{ display: 'flex', gap: '16px' }}>
+                    {!(role === '1' && formData.trangThai === 0) && (
+                        <div style={{ display: 'flex', gap: '16px' }}>
                         <div style={{ flex: 1 }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Số Quyết Định</label>
                             <input 
                                 type="text" 
-                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
                                 value={formData.qD_CongNhan}
                                 onChange={(e) => setFormData({...formData, qD_CongNhan: e.target.value})}
+                                disabled={role === '1'}
+                                placeholder={role === '1' ? 'Chờ Sở cập nhật' : ''}
                             />
                         </div>
                         <div style={{ flex: 1 }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Ngày Công Nhận</label>
                             <input 
                                 type="date" 
-                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
                                 value={formData.ngayCongNhan}
                                 onChange={(e) => setFormData({...formData, ngayCongNhan: e.target.value})}
+                                disabled={role === '1'}
                             />
                         </div>
-                    </div>
+                        </div>
+                    )}
                             </div>
                         </div>
                         <div className="ocop-modal-footer">
@@ -439,10 +617,22 @@ const OcopPage = () => {
                                 className="ocop-modal-btn cancel"
                             >Hủy</button>
                             <button 
-                                onClick={handleSave}
+                                onClick={() => handleSave(false)}
                                 disabled={!formData.tenSanPham || !formData.donViId}
                                 className="ocop-modal-btn save"
-                            >Lưu Sản Phẩm</button>
+                            >
+                                {role === '1' ? 'Lưu Nháp' : 'Lưu Sản Phẩm'}
+                            </button>
+                            {role === '1' && selectedItem && formData.trangThai === 0 && (
+                                <button 
+                                    onClick={() => handleSave(true)}
+                                    disabled={!formData.tenSanPham || !formData.donViId}
+                                    className="ocop-modal-btn save"
+                                    style={{ backgroundColor: '#16a34a', color: 'white' }}
+                                >
+                                    Nộp Hồ Sơ Dự Thi
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -471,8 +661,117 @@ const OcopPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* Vote Modal (Judging Panel) */}
+            {isVoteModalOpen && selectedItem && (
+                <div className="ocop-modal-overlay" style={{ zIndex: 1000 }}>
+                    <div className="vote-modal-container">
+                        <div className="vote-modal-header">
+                            <h2><Award size={24} /> Hội Đồng Bình Chọn Sản Phẩm CNNT</h2>
+                            <button className="vote-modal-close" onClick={() => setIsVoteModalOpen(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        
+                        <div className="vote-split-layout">
+                            {/* Left Column: Product Details */}
+                            <div className="vote-product-preview">
+                                <img 
+                                    src={selectedItem.hinhAnh || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600'} 
+                                    alt="Sản phẩm" 
+                                    className="vote-product-img"
+                                />
+                                <h3 className="vote-product-title">{selectedItem.tenSanPham}</h3>
+                                <div className="vote-product-donvi">
+                                    <Building2 size={16} />
+                                    {selectedItem.tenDonVi}
+                                </div>
+                                <div className="vote-product-desc">
+                                    {selectedItem.moTa || 'Không có mô tả chi tiết cho sản phẩm này.'}
+                                </div>
+                            </div>
+                            
+                            {/* Right Column: Judging Decision */}
+                            <div className="vote-decision-panel">
+                                <h4 className="vote-panel-title">Quyết Định Của Hội Đồng</h4>
+                                
+                                <div className="vote-cards-container">
+                                    <div 
+                                        className={`vote-card pass ${voteFormData.trangThai === 2 ? 'selected' : ''}`}
+                                        onClick={() => setVoteFormData({...voteFormData, trangThai: 2})}
+                                    >
+                                        <Award size={32} />
+                                        <span className="vote-card-title">Đạt Bình Chọn</span>
+                                    </div>
+                                    <div 
+                                        className={`vote-card fail ${voteFormData.trangThai === 3 ? 'selected' : ''}`}
+                                        onClick={() => setVoteFormData({...voteFormData, trangThai: 3})}
+                                    >
+                                        <XCircle size={32} />
+                                        <span className="vote-card-title">Không Đạt</span>
+                                    </div>
+                                </div>
+
+                                {voteFormData.trangThai === 2 && (
+                                    <div className="vote-details-form" style={{ animation: 'modal-fade-in 0.3s ease-out' }}>
+                                        <div className="vote-form-group">
+                                            <label>Năm đạt giải *</label>
+                                            <input 
+                                                type="number" 
+                                                value={voteFormData.namBinhChon}
+                                                onChange={(e) => setVoteFormData({...voteFormData, namBinhChon: e.target.value})}
+                                            />
+                                        </div>
+                                        <div className="vote-form-group">
+                                            <label>Số Quyết Định (Tùy chọn)</label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="Ví dụ: 123/QĐ-UBND"
+                                                value={voteFormData.qD_CongNhan}
+                                                onChange={(e) => setVoteFormData({...voteFormData, qD_CongNhan: e.target.value})}
+                                            />
+                                        </div>
+                                        <div className="vote-form-group">
+                                            <label>Ngày Công Nhận (Tùy chọn)</label>
+                                            <input 
+                                                type="date" 
+                                                value={voteFormData.ngayCongNhan}
+                                                onChange={(e) => setVoteFormData({...voteFormData, ngayCongNhan: e.target.value})}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="vote-modal-footer">
+                            <button 
+                                onClick={() => setIsVoteModalOpen(false)}
+                                className="ocop-modal-btn cancel"
+                                style={{ padding: '12px 24px' }}
+                            >
+                                Hủy Quyết Định
+                            </button>
+                            <button 
+                                onClick={handleVoteSubmit}
+                                className="ocop-modal-btn save"
+                                style={{ padding: '12px 24px', fontSize: '1rem' }}
+                            >
+                                <CheckCircle size={18} style={{ marginRight: '8px', verticalAlign: 'text-bottom' }}/> 
+                                Xác Nhận Kết Quả
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
+
+const OcopPage = () => (
+    <ErrorBoundary>
+        <OcopPageContent />
+    </ErrorBoundary>
+);
 
 export default OcopPage;

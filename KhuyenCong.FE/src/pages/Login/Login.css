@@ -12,7 +12,8 @@
   background: radial-gradient(circle at center, #1b2e59 0%, #0d172e 100%);
   margin: 0;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 

@@ -99,21 +99,27 @@ public class DeAnController : ControllerBase
     [Authorize(Roles = "Role_So,Role_Bo,Role_Admin")]
     public async Task<IActionResult> DuyetHoSo(Guid id, [FromQuery] int currentTrangThai)
     {
-        // Tùy theo trạng thái hiện tại để đẩy sang trạng thái tiếp theo của 9 trạng thái:
-        // 1: Chờ Sở thẩm định -> 2: Chờ Cục thẩm định
-        // 2: Chờ Cục thẩm định -> 5: Đã phê duyệt
-        // 5: Đã phê duyệt -> 6: Đang thực hiện
-        // 6: Đang thực hiện -> 7: Đã nghiệm thu
-        // 7: Đã nghiệm thu -> 8: Đã quyết toán
+        var userRoleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        bool isAdmin = userRoleClaim == "Role_Admin";
+
         int nextState;
         switch (currentTrangThai)
         {
-            case 1: nextState = 2; break;
-            case 2: nextState = 5; break;
-            case 5: nextState = 6; break;
-            case 6: nextState = 7; break;
-            case 7: nextState = 8; break;
-            default: nextState = currentTrangThai + 1; break;
+            case 1: 
+                if (userRoleClaim != "Role_So" && !isAdmin)
+                    return Forbid("Chỉ Sở Công Thương mới có quyền duyệt hồ sơ cấp cơ sở.");
+                nextState = 2; // Chờ Cục thẩm định
+                break;
+            case 2: 
+                if (userRoleClaim != "Role_Bo" && !isAdmin)
+                    return Forbid("Chỉ Cục Công Thương mới có quyền phê duyệt đề án.");
+                nextState = 5; // Đã phê duyệt
+                break;
+            case 5: 
+                nextState = 6; // Đang thực hiện
+                break;
+            default: 
+                return BadRequest("Trạng thái hiện tại không hợp lệ để duyệt.");
         }
         
         var updated = await _deAnService.UpdateStatusAsync(id, nextState, "Đã duyệt hồ sơ");
@@ -125,9 +131,38 @@ public class DeAnController : ControllerBase
     [Authorize(Roles = "Role_So,Role_Bo,Role_Admin")]
     public async Task<IActionResult> TraHoSo(Guid id, [FromBody] string lyDo)
     {
+        if (string.IsNullOrWhiteSpace(lyDo))
+            return BadRequest(new { Message = "Bắt buộc phải nhập lý do yêu cầu bổ sung." });
+
         // Trạng thái 3 = Yêu cầu bổ sung
         var updated = await _deAnService.UpdateStatusAsync(id, 3, lyDo);
         if (!updated) return NotFound();
         return Ok(new { Message = "Đã trả lại hồ sơ yêu cầu bổ sung" });
+    }
+
+    [HttpPost("{id}/tu-choi")]
+    [Authorize(Roles = "Role_So,Role_Bo,Role_Admin")]
+    public async Task<IActionResult> TuChoi(Guid id, [FromBody] string lyDo)
+    {
+        if (string.IsNullOrWhiteSpace(lyDo))
+            return BadRequest(new { Message = "Bắt buộc phải nhập lý do từ chối." });
+
+        // Trạng thái 4 = Bị từ chối
+        var updated = await _deAnService.UpdateStatusAsync(id, 4, lyDo);
+        if (!updated) return NotFound();
+        return Ok(new { Message = "Đã từ chối hồ sơ." });
+    }
+
+    [HttpPost("{id}/nghiem-thu")]
+    [Authorize(Roles = "Role_So,Role_Admin")]
+    public async Task<IActionResult> NghiemThu(Guid id, [FromBody] string fileUrl)
+    {
+        if (string.IsNullOrWhiteSpace(fileUrl))
+            return BadRequest(new { Message = "Bắt buộc phải đính kèm file Biên bản nghiệm thu." });
+
+        // Trạng thái 7 = Đã nghiệm thu
+        var updated = await _deAnService.UpdateStatusAsync(id, 7, "Đã nghiệm thu. File đính kèm: " + fileUrl);
+        if (!updated) return NotFound();
+        return Ok(new { Message = "Đã nghiệm thu đề án thành công." });
     }
 }

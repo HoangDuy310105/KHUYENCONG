@@ -240,6 +240,14 @@
   color: #374151;
 }
 
+.form-group input.readonly-input {
+  background-color: #e5e7eb;
+  color: #1f2937 !important;
+  cursor: not-allowed;
+  font-weight: 600;
+  border-color: #d1d5db;
+}
+
 /* Monospace alignment for numeric monetary inputs */
 .number-input {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;

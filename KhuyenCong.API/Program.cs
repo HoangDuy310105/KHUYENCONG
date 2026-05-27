@@ -160,6 +160,12 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// Ensure wwwroot/uploads exists
+var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+if (!Directory.Exists(uploadsFolder))
+{
+    Directory.CreateDirectory(uploadsFolder);
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -170,6 +176,9 @@ if (!app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
 }
+
+app.UseStaticFiles(); // Phục vụ file tĩnh (upload tài liệu, ảnh)
+
 
 app.UseCors("AllowAll");
 

@@ -4,6 +4,7 @@ using System.Text.Json;
 using KhuyenCong.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KhuyenCong.Data.Migrations
 {
     [DbContext(typeof(KhuyenCongDbContext))]
-    partial class KhuyenCongDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260527074202_SeedRoleSo")]
+    partial class SeedRoleSo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -47,5 +47,27 @@ public static class DbSeeder
             IsActive = true,
             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         });
+
+        var donViSoId = Guid.Parse("00000000-0000-0000-0000-000000000002");
+        modelBuilder.Entity<DonVi>().HasData(new DonVi
+        {
+            Id = donViSoId,
+            TenDonVi = "Sở Công Thương",
+            MaSoThue = "0202020202",
+            LoaiDonVi = LoaiDonVi.QuanLyNhaNuoc,
+            DiaChi = "Tỉnh/TP",
+            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        });
+
+        modelBuilder.Entity<NguoiDung>().HasData(new NguoiDung
+        {
+            Id = Guid.Parse("b2222222-2222-2222-2222-222222222222"),
+            Username = "canboso",
+            PasswordHash = "so@123", 
+            Role = RoleType.Role_So,
+            DonViId = donViSoId,
+            IsActive = true,
+            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        });
     }
 }

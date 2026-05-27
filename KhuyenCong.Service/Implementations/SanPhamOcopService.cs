@@ -40,6 +40,7 @@ public class SanPhamOcopService : ISanPhamOcopService
             NgayCongNhan = o.NgayCongNhan,
             QuyetDinhCongNhan = o.QuyetDinhCongNhan,
             HinhAnh = o.HinhAnh,
+            MoTa = o.MoTa,
             LoaiSanPham = o.LoaiSanPham,
             TrangThai = o.TrangThai,
             NamBinhChon = o.NamBinhChon
@@ -64,6 +65,7 @@ public class SanPhamOcopService : ISanPhamOcopService
             NgayCongNhan = item.NgayCongNhan,
             QuyetDinhCongNhan = item.QuyetDinhCongNhan,
             HinhAnh = item.HinhAnh,
+            MoTa = item.MoTa,
             LoaiSanPham = item.LoaiSanPham,
             TrangThai = item.TrangThai,
             NamBinhChon = item.NamBinhChon
@@ -81,6 +83,7 @@ public class SanPhamOcopService : ISanPhamOcopService
             NgayCongNhan = dto.NgayCongNhan,
             QuyetDinhCongNhan = dto.QuyetDinhCongNhan ?? string.Empty,
             HinhAnh = dto.HinhAnh,
+            MoTa = dto.MoTa,
             LoaiSanPham = dto.LoaiSanPham,
             TrangThai = dto.TrangThai,
             NamBinhChon = dto.NamBinhChon
@@ -105,6 +108,7 @@ public class SanPhamOcopService : ISanPhamOcopService
         existing.NgayCongNhan = dto.NgayCongNhan;
         existing.QuyetDinhCongNhan = dto.QuyetDinhCongNhan ?? string.Empty;
         existing.HinhAnh = dto.HinhAnh;
+        existing.MoTa = dto.MoTa;
         existing.LoaiSanPham = dto.LoaiSanPham;
         existing.TrangThai = dto.TrangThai;
         existing.NamBinhChon = dto.NamBinhChon;

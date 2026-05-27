@@ -17,6 +17,8 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './DashboardPage.css';
 import '../DeAn/DeAnList.css'; // Import CSS của Quản lý đề án để tái sử dụng giao diện
+import CoSoDashboard from './CoSoDashboard';
+import SoDashboard from './SoDashboard';
 
 ChartJS.register(
   CategoryScale, LinearScale, BarElement, ArcElement, 
@@ -553,15 +555,36 @@ function DashboardPage() {
     }
   };
 
+  if (isCoSo) {
+    return <CoSoDashboard />;
+  }
+
+  if (isSo) {
+    return <SoDashboard />;
+  }
+
+  const getDashboardTitle = () => {
+    if (isAdmin) return 'BẢNG ĐIỀU KHIỂN QUẢN TRỊ (ADMIN)';
+    if (isBo) return 'BẢNG ĐIỀU KHIỂN CỤC CÔNG NGHIỆP ĐỊA PHƯƠNG';
+    if (isSo) return 'BẢNG ĐIỀU KHIỂN SỞ CÔNG THƯƠNG';
+    if (isTTKC) return 'BẢNG ĐIỀU KHIỂN TRUNG TÂM KHUYẾN CÔNG';
+    return 'BẢNG ĐIỀU KHIỂN TỔNG QUAN';
+  };
+
+  const getDashboardSubtitle = () => {
+    if (isAdmin || isBo) return 'Tổng quan toàn diện số liệu Khuyến Công Quốc Gia';
+    if (isSo) return 'Tổng quan số liệu Khuyến Công Tỉnh/Thành phố';
+    return 'Tổng quan số liệu Khuyến Công';
+  };
 
   return (
     <div className="db-container">
       <div className="db-header">
         <h1 className="db-title">
           <Activity color="#d97706" size={28} />
-          BẢNG ĐIỀU KHIỂN QUẢN TRỊ (ADMIN)
+          {getDashboardTitle()}
         </h1>
-        <p className="db-subtitle">Tổng quan toàn diện số liệu Khuyến Công Quốc Gia (Theo tài liệu V2)</p>
+        <p className="db-subtitle">{getDashboardSubtitle()}</p>
       </div>
 
       <div className="db-grid-4">

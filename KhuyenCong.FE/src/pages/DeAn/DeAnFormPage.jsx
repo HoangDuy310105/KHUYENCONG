@@ -140,17 +140,69 @@ function DeAnFormPage() {
     }));
   };
 
+  const [uploading, setUploading] = useState(false);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setFormData(prev => ({
       ...prev,
-      bienBanGiamSatFile: file
+      fileHoSo: file
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // --- Bổ sung Validation chi tiết ---
+    if (!formData.tenDeAn || formData.tenDeAn.trim() === '') {
+      alert('Vui lòng nhập Tên đề án.');
+      return;
+    }
+    if (!formData.loaiDeAnId) {
+      alert('Vui lòng chọn Loại đề án.');
+      return;
+    }
+    if (!formData.linhVucId) {
+      alert('Vui lòng chọn Lĩnh vực thực hiện.');
+      return;
+    }
+    if (!diaChiState.selectedTinh || !diaChiState.selectedHuyen || !diaChiState.selectedXa) {
+      alert('Vui lòng chọn đầy đủ 3 cấp hành chính cho Địa điểm thực hiện (Tỉnh - Huyện - Xã).');
+      return;
+    }
+    if (!formData.donViThuHuongId) {
+      alert('Vui lòng chọn Đơn vị thụ hưởng.');
+      return;
+    }
+    if (formData.kinhPhiDuKien === '' || Number(formData.kinhPhiDuKien) <= 0) {
+      alert('Kinh phí dự kiến phải là số lớn hơn 0.');
+      return;
+    }
+    if (!formData.thoiGianBatDau || !formData.thoiGianKetThuc) {
+      alert('Vui lòng chọn đầy đủ Thời gian thực hiện (Bắt đầu và Kết thúc).');
+      return;
+    }
+    if (new Date(formData.thoiGianBatDau) > new Date(formData.thoiGianKetThuc)) {
+      alert('Cú pháp sai: Thời gian bắt đầu không được lớn hơn Thời gian kết thúc.');
+      return;
+    }
+    // -----------------------------------
+
     try {
+      setUploading(true);
+      let fileDinhKemInfo = null;
+
+      // Xử lý upload file thật lên Server
+      if (formData.fileHoSo) {
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', formData.fileHoSo);
+        
+        const uploadRes = await api.post('/file/upload', formDataUpload, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        fileDinhKemInfo = uploadRes.data;
+      }
+
       const payload = {
         tenDeAn: formData.tenDeAn,
         linhVucId: formData.linhVucId,
@@ -168,7 +220,7 @@ function DeAnFormPage() {
           donViThiCong: formData.donViThiCongText,
           donViGiamSat: formData.donViGiamSat,
           thoiGianGiamSat: formData.thoiGianGiamSat || null,
-          bienBanGiamSat: formData.bienBanGiamSatFile ? formData.bienBanGiamSatFile.name : null
+          fileHoSo: fileDinhKemInfo // Lưu thông tin file đã upload
         }
       };
 
@@ -177,7 +229,9 @@ function DeAnFormPage() {
       navigate('/de-an');
     } catch (error) {
       console.error('Lỗi khi lưu đề án:', error);
-      alert('Có lỗi xảy ra khi lưu đề án');
+      alert('Có lỗi xảy ra khi lưu đề án: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -197,7 +251,7 @@ function DeAnFormPage() {
 
         {/* Modal Body */}
         <div className="dean-modal-body">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             
             {/* SECTION 1: THÔNG TIN CƠ BẢN */}
             <div className="form-section">
@@ -302,7 +356,7 @@ function DeAnFormPage() {
                       value={userTenDonVi || 'Đơn vị của bạn'} 
                       readOnly 
                       disabled
-                      style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'rgba(255, 255, 255, 0.6)', cursor: 'not-allowed' }}
+                      className="readonly-input"
                     />
                   ) : (
                     <select name="donViThuHuongId" value={formData.donViThuHuongId} onChange={handleChange} required>
@@ -442,19 +496,21 @@ function DeAnFormPage() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>BIÊN BẢN GIÁM SÁT (FILE ĐÍNH KÈM)</label>
+                  <label>HỒ SƠ ĐỀ ÁN (PDF, DOCX, ZIP) (*)</label>
                   <div className="file-input-wrapper">
                     <input 
                       type="file" 
                       id="bienBanFile"
                       onChange={handleFileChange}
                       className="file-input-hidden"
+                      accept=".pdf,.doc,.docx,.zip,.rar"
+                      required
                     />
                     <label htmlFor="bienBanFile" className="file-input-label">
-                      Choose File
+                      Chọn File...
                     </label>
                     <span className="file-name-display">
-                      {formData.bienBanGiamSatFile ? formData.bienBanGiamSatFile.name : 'No file chosen'}
+                      {formData.fileHoSo ? formData.fileHoSo.name : 'Chưa có file đính kèm'}
                     </span>
                   </div>
                 </div>
@@ -465,12 +521,12 @@ function DeAnFormPage() {
             <div className="form-footer">
               <span className="footnote">(*) Trường bắt buộc - Hồ sơ lưu theo quy trình TT28</span>
               <div className="footer-actions">
-                <button type="button" className="btn-cancel" onClick={() => navigate('/de-an')}>
+                <button type="button" className="btn-cancel" onClick={() => navigate('/de-an')} disabled={uploading}>
                   Hủy
                 </button>
-                <button type="submit" className="btn-submit">
+                <button type="submit" className="btn-submit" disabled={uploading}>
                   <Save size={16} style={{ marginRight: '6px' }} />
-                  LƯU HỒ SƠ
+                  {uploading ? 'ĐANG TẢI LÊN & LƯU...' : 'NỘP HỒ SƠ'}
                 </button>
               </div>
             </div>
