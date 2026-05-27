@@ -34,6 +34,24 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var response = await _authService.RegisterAsync(request);
+
+        if (!response.Success)
+        {
+            return BadRequest(new { Message = response.Message });
+        }
+
+        return Ok(response);
+    }
+
     [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetProfile()

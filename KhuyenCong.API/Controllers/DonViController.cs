@@ -20,7 +20,7 @@ public class DonViController : ControllerBase
         _donViService = donViService;
     }
 
-    [Authorize(Roles = "Role_So,Role_Bo,Role_Admin")]
+    [Authorize(Roles = "Role_So,Role_Bo,Role_Admin,Role_CoSo,Role_TTKC")]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
     {
@@ -28,7 +28,7 @@ public class DonViController : ControllerBase
         return Ok(new { TotalCount = totalCount, Page = page, PageSize = pageSize, Data = items });
     }
 
-    [Authorize(Roles = "Role_So,Role_Bo,Role_Admin")]
+    [Authorize(Roles = "Role_So,Role_Bo,Role_Admin,Role_TTKC")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {

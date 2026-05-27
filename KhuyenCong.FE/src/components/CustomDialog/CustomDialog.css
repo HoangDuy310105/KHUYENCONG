@@ -1,0 +1,87 @@
+.custom-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.custom-dialog-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+.custom-dialog-body-flex {
+  display: flex;
+  padding: 24px;
+  gap: 16px;
+}
+.custom-dialog-icon-col {
+  flex-shrink: 0;
+}
+.custom-dialog-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-dialog-icon-circle.bg-blue {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.custom-dialog-icon-circle.bg-red {
+  background: #fef2f2;
+  color: #dc2626;
+}
+.custom-dialog-content-col {
+  flex: 1;
+}
+.custom-dialog-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+.custom-dialog-message {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0;
+}
+.custom-dialog-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.custom-dialog-btn {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-text-cancel {
+  background: transparent;
+  color: #64748b;
+}
+.btn-text-cancel:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+.btn-red-confirm {
+  background: #1e3a5f;
+  color: #fff;
+}
+.btn-red-confirm:hover {
+  background: #152d4a;
+}

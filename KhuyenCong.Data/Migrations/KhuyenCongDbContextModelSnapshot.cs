@@ -64,6 +64,9 @@ namespace KhuyenCong.Data.Migrations
                     b.Property<Guid>("DonViThuHuongId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("GhiChu")
+                        .HasColumnType("text");
+
                     b.Property<JsonDocument>("HoSoDinhKem")
                         .HasColumnType("jsonb");
 
@@ -79,6 +82,9 @@ namespace KhuyenCong.Data.Migrations
                     b.Property<string>("MaDeAn")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("NguonKinhPhi")
+                        .HasColumnType("integer");
 
                     b.Property<string>("TenDeAn")
                         .IsRequired()
@@ -424,11 +430,24 @@ namespace KhuyenCong.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CapChungNhan")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("DonViId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("HinhAnh")
+                        .HasColumnType("text");
+
+                    b.Property<int>("LoaiSanPham")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("NamBinhChon")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("NgayCongNhan")
                         .HasColumnType("timestamp with time zone");
@@ -436,9 +455,16 @@ namespace KhuyenCong.Data.Migrations
                     b.Property<int>("PhanHangSao")
                         .HasColumnType("integer");
 
+                    b.Property<string>("QuyetDinhCongNhan")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("TenSanPham")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("TrangThai")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");

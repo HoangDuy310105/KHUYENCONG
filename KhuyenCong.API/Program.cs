@@ -4,6 +4,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using StackExchange.Redis;
 
+// ⚠️ Cho phép Npgsql tự convert DateTime.Kind=Unspecified thành UTC
+// để tránh lỗi "Cannot write DateTime with Kind=Unspecified to PostgreSQL timestamp with time zone"
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -12,7 +16,8 @@ builder.Services.AddControllers();
 // Configure Entity Framework Core with PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<KhuyenCong.Data.Context.KhuyenCongDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString)
+           .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
 // Configure CORS for Frontend
 builder.Services.AddCors(options =>
@@ -50,6 +55,10 @@ builder.Services.AddScoped<KhuyenCong.Service.Interfaces.ILoaiDeAnService, Khuye
 builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IDiaDiemService, KhuyenCong.Service.Implementations.DiaDiemService>();
 builder.Services.AddScoped<KhuyenCong.Service.Interfaces.INguoiDungService, KhuyenCong.Service.Implementations.NguoiDungService>();
 builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IAuthService, KhuyenCong.Service.Implementations.AuthService>();
+builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IDeAnService, KhuyenCong.Service.Implementations.DeAnService>();
+builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IGiaiNganService, KhuyenCong.Service.Implementations.GiaiNganService>();
+builder.Services.AddScoped<KhuyenCong.Service.Interfaces.ISanPhamOcopService, KhuyenCong.Service.Implementations.SanPhamOcopService>();
+builder.Services.AddScoped<KhuyenCong.Service.Interfaces.ITienDoThucHienService, KhuyenCong.Service.Implementations.TienDoThucHienService>();
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -82,6 +91,74 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Tự động chạy Migration và Seed dữ liệu khi khởi động
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<KhuyenCong.Data.Context.KhuyenCongDbContext>();
+    dbContext.Database.Migrate();
+
+    // Runtime seed dữ liệu nếu bảng trống
+    if (!dbContext.LoaiDeAns.Any())
+    {
+        dbContext.LoaiDeAns.AddRange(new List<KhuyenCong.Core.Entities.LoaiDeAn>
+        {
+            new KhuyenCong.Core.Entities.LoaiDeAn { Id = Guid.NewGuid(), MaLoai = "KQG_DIEM", TenLoai = "Khuyến công Quốc gia (Điểm)" },
+            new KhuyenCong.Core.Entities.LoaiDeAn { Id = Guid.NewGuid(), MaLoai = "KQG_NHOM", TenLoai = "Khuyến công Quốc gia (Theo nhóm)" },
+            new KhuyenCong.Core.Entities.LoaiDeAn { Id = Guid.NewGuid(), MaLoai = "KQG_DOITUONG", TenLoai = "Khuyến công Quốc gia (Đối tượng cụ thể)" },
+            new KhuyenCong.Core.Entities.LoaiDeAn { Id = Guid.NewGuid(), MaLoai = "KDP", TenLoai = "Khuyến công Địa phương" }
+        });
+        dbContext.SaveChanges();
+    }
+
+    if (dbContext.DonVis.Count() <= 1)
+    {
+        dbContext.DonVis.AddRange(new List<KhuyenCong.Core.Entities.DonVi>
+        {
+            new KhuyenCong.Core.Entities.DonVi 
+            { 
+                Id = Guid.NewGuid(), 
+                TenDonVi = "Hợp tác xã Nông nghiệp Sạch Đồng Tháp", 
+                MaSoThue = "1234567890", 
+                LoaiDonVi = KhuyenCong.Core.Enums.LoaiDonVi.ThuHuong, 
+                DiaChi = "Đồng Tháp" 
+            },
+            new KhuyenCong.Core.Entities.DonVi 
+            { 
+                Id = Guid.NewGuid(), 
+                TenDonVi = "Công ty TNHH May mặc Bến Tre", 
+                MaSoThue = "1234567891", 
+                LoaiDonVi = KhuyenCong.Core.Enums.LoaiDonVi.ThuHuong, 
+                DiaChi = "Bến Tre" 
+            },
+            new KhuyenCong.Core.Entities.DonVi 
+            { 
+                Id = Guid.NewGuid(), 
+                TenDonVi = "Công ty Cổ phần VLXD Tiền Giang", 
+                MaSoThue = "1234567892", 
+                LoaiDonVi = KhuyenCong.Core.Enums.LoaiDonVi.ThuHuong, 
+                DiaChi = "Tiền Giang" 
+            },
+            new KhuyenCong.Core.Entities.DonVi 
+            { 
+                Id = Guid.NewGuid(), 
+                TenDonVi = "Công ty Cổ phần Thi công Xây dựng Hà Nội", 
+                MaSoThue = "9876543210", 
+                LoaiDonVi = KhuyenCong.Core.Enums.LoaiDonVi.ThiCong, 
+                DiaChi = "Hà Nội" 
+            },
+            new KhuyenCong.Core.Entities.DonVi 
+            { 
+                Id = Guid.NewGuid(), 
+                TenDonVi = "Công ty TNHH Cơ điện Miền Nam", 
+                MaSoThue = "9876543211", 
+                LoaiDonVi = KhuyenCong.Core.Enums.LoaiDonVi.ThiCong, 
+                DiaChi = "TP. Hồ Chí Minh" 
+            }
+        });
+        dbContext.SaveChanges();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

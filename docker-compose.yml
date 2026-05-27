@@ -10,28 +10,25 @@ services:
   # SERVICE 1: CƠ SỞ DỮ LIỆU POSTGRESQL
   # Khởi động đầu tiên, các service khác phải chờ service này sẵn sàng
   # ---------------------------------------------------------------
-  postgres:
-    image: postgres:16-alpine
-    container_name: khuyencong_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: KhuyenCongDB
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "123456"
-    ports:
-      # Mở ra ngoài để pgAdmin trên máy host vẫn kết nối được
-      - "5432:5432"
-    volumes:
-      # Lưu dữ liệu vào Volume — Không mất dữ liệu khi tắt container
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - khuyencong_network
-    healthcheck:
-      # Kiểm tra DB đã sẵn sàng nhận kết nối chưa
-      test: ["CMD-SHELL", "pg_isready -U postgres -d KhuyenCongDB"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: khuyencong_postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: KhuyenCongDB
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: "123456"
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - khuyencong_network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres -d KhuyenCongDB"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   # ---------------------------------------------------------------
   # SERVICE 2: REDIS CACHE
@@ -42,10 +39,8 @@ services:
     container_name: khuyencong_redis
     restart: unless-stopped
     ports:
-      # Mở ra ngoài để debug Redis bằng RedisInsight trên máy host
       - "6379:6379"
     volumes:
-      # Lưu dữ liệu cache để không mất khi restart
       - redis_data:/data
     networks:
       - khuyencong_network
@@ -57,7 +52,7 @@ services:
 
   # ---------------------------------------------------------------
   # SERVICE 3: BACKEND .NET 10 API
-  # Chỉ khởi động sau khi PostgreSQL VÀ Redis đã sẵn sàng
+  # Chỉ khởi động sau khi Redis đã sẵn sàng
   # ---------------------------------------------------------------
   backend:
     build:
@@ -68,8 +63,8 @@ services:
     ports:
       - "5005:5005"
     environment:
-      # Ghi đè Connection String — Dùng tên service thay vì localhost
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=KhuyenCongDB;Username=postgres;Password=123456;
+      # Kết nối tới Database Postgres của pgAdmin trên máy host Windows (dùng host.docker.internal)
+      - ConnectionStrings__DefaultConnection=Host=host.docker.internal;Port=5432;Database=KhuyenCongDB;Username=postgres;Password=123456;
       - ConnectionStrings__RedisConnection=redis:6379
       # Ghi đè JWT Settings
       - JwtSettings__SecretKey=KhuyenCong_SecretKey_ChinhThuc_Phai_Lon_Hon_256_Bits_De_Ma_Hoa
@@ -78,10 +73,10 @@ services:
       - JwtSettings__ExpiryMinutes=60
       - ASPNETCORE_ENVIRONMENT=Production
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - khuyencong_network
 

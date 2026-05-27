@@ -7,4 +7,6 @@ public class LoginResponseDto
     public string? Token { get; set; }
     public string? Username { get; set; }
     public int? Role { get; set; }
+    public System.Guid? DonViId { get; set; }
+    public string? TenDonVi { get; set; }
 }

@@ -9,9 +9,9 @@ namespace KhuyenCong.Core.Interfaces;
 public interface IRepository<T> where T : class
 {
     Task<T?> GetByIdAsync(Guid id);
-    Task<IEnumerable<T>> GetAllAsync();
-    Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> expression);
-    Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, Expression<Func<T, bool>>? filter = null);
+    Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string includeProperties = "");
+    Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> expression, string includeProperties = "");
+    Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, Expression<Func<T, bool>>? filter = null, string includeProperties = "");
     
     Task AddAsync(T entity);
     Task AddRangeAsync(IEnumerable<T> entities);

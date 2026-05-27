@@ -23,13 +23,35 @@ public class NguoiDungService : INguoiDungService
     public async Task<IEnumerable<NguoiDungDto>> GetAllAsync()
     {
         var entities = await _unitOfWork.NguoiDungs.GetAllAsync();
-        return _mapper.Map<IEnumerable<NguoiDungDto>>(entities);
+        var dtos = _mapper.Map<IEnumerable<NguoiDungDto>>(entities);
+        foreach (var dto in dtos)
+        {
+            if (dto.DonViId.HasValue)
+            {
+                var donVi = await _unitOfWork.DonVis.GetByIdAsync(dto.DonViId.Value);
+                if (donVi != null)
+                {
+                    dto.TenDonVi = donVi.TenDonVi;
+                }
+            }
+        }
+        return dtos;
     }
 
     public async Task<NguoiDungDto?> GetByIdAsync(Guid id)
     {
         var entity = await _unitOfWork.NguoiDungs.GetByIdAsync(id);
-        return _mapper.Map<NguoiDungDto>(entity);
+        if (entity == null) return null;
+        var dto = _mapper.Map<NguoiDungDto>(entity);
+        if (dto.DonViId.HasValue)
+        {
+            var donVi = await _unitOfWork.DonVis.GetByIdAsync(dto.DonViId.Value);
+            if (donVi != null)
+            {
+                dto.TenDonVi = donVi.TenDonVi;
+            }
+        }
+        return dto;
     }
 
     public async Task<NguoiDungDto> CreateAsync(NguoiDungDto dto)
@@ -83,6 +105,41 @@ public class NguoiDungService : INguoiDungService
         _unitOfWork.NguoiDungs.Update(existing);
         await _unitOfWork.CompleteAsync();
         
+        return true;
+    }
+
+    public async Task<bool> ApproveAsync(Guid id)
+    {
+        var existing = await _unitOfWork.NguoiDungs.GetByIdAsync(id);
+        if (existing == null) return false;
+
+        existing.IsActive = true;
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        _unitOfWork.NguoiDungs.Update(existing);
+        await _unitOfWork.CompleteAsync();
+        return true;
+    }
+
+    public async Task<bool> RejectAsync(Guid id)
+    {
+        var existing = await _unitOfWork.NguoiDungs.GetByIdAsync(id);
+        if (existing == null) return false;
+
+        // Xóa NguoiDung
+        _unitOfWork.NguoiDungs.Remove(existing);
+
+        // Xóa DonVi đi kèm nếu có
+        if (existing.DonViId.HasValue)
+        {
+            var donVi = await _unitOfWork.DonVis.GetByIdAsync(existing.DonViId.Value);
+            if (donVi != null)
+            {
+                _unitOfWork.DonVis.Remove(donVi);
+            }
+        }
+
+        await _unitOfWork.CompleteAsync();
         return true;
     }
 

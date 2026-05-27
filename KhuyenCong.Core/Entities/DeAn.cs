@@ -16,6 +16,8 @@ public class DeAn : BaseEntity
     public Guid? DonViThiCongId { get; set; }
 
     public decimal KinhPhiDuKien { get; set; }
+    public NguonKinhPhi NguonKinhPhi { get; set; } = NguonKinhPhi.DiaPhуong;
+    public string? GhiChu { get; set; }
     public DateTime? ThoiGianBatDau { get; set; }
     public DateTime? ThoiGianKetThuc { get; set; }
     public Guid LoaiDeAnId { get; set; }

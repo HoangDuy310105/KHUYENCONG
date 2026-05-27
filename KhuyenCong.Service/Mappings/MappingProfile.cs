@@ -17,7 +17,8 @@ public class MappingProfile : Profile
 
         // NguoiDung mapping
         CreateMap<NguoiDung, NguoiDungDto>()
-            .ForMember(dest => dest.Password, opt => opt.Ignore());
+            .ForMember(dest => dest.Password, opt => opt.Ignore())
+            .ForMember(dest => dest.TenDonVi, opt => opt.MapFrom(src => src.DonVi != null ? src.DonVi.TenDonVi : null));
         CreateMap<NguoiDungDto, NguoiDung>()
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
 

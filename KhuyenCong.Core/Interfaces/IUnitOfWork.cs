@@ -14,6 +14,7 @@ public interface IUnitOfWork : IDisposable
     IRepository<GiaiNgan> GiaiNgans { get; }
     IRepository<TienDoThucHien> TienDoThucHiens { get; }
     IRepository<LichSuThaoTac> LichSuThaoTacs { get; }
+    IRepository<SanPhamOcop> SanPhamOcops { get; }
 
     Task<int> CompleteAsync();
 }

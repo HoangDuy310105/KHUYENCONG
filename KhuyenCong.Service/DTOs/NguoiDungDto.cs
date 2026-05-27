@@ -19,6 +19,9 @@ public class NguoiDungDto
     // ID của Đơn vị mà người dùng này trực thuộc
     public Guid? DonViId { get; set; }
     
+    // Tên Đơn vị liên kết
+    public string? TenDonVi { get; set; }
+    
     // Trạng thái khóa tài khoản
     public bool IsActive { get; set; }
 }

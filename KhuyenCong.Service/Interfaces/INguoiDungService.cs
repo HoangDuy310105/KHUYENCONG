@@ -22,6 +22,9 @@ public interface INguoiDungService
     // Đổi mật khẩu cho người dùng
     Task<bool> ChangePasswordAsync(Guid id, string newPassword);
     
+    Task<bool> ApproveAsync(Guid id);
+    Task<bool> RejectAsync(Guid id);
+    
     // Xóa (Khóa) tài khoản
     Task<bool> DeleteAsync(Guid id);
 }

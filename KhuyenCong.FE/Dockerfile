@@ -14,7 +14,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Cài đặt toàn bộ thư viện npm (axios, react-router-dom...)
-RUN npm ci
+RUN npm install
 
 # Copy toàn bộ mã nguồn ReactJS vào container
 COPY . .

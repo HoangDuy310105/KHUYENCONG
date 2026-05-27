@@ -1,0 +1,394 @@
+/* =============================================
+   PUBLIC LAYOUT — Cổng thông tin Khuyến Công
+   Bố cục: Theo phong cách muasamcong.mpi.gov.vn
+   - Tầng 1: Utility bar (navy đậm)
+   - Tầng 2: Logo + Nav (nền trắng, viền vàng đồng dưới)
+   - Tầng 3: Search bar compact (navy trung)
+   ============================================= */
+
+.public-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-page);
+}
+
+/* =============================================
+   HEADER
+   ============================================= */
+.public-header {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  box-shadow: var(--shadow-header);
+  background-color: #fdf8eb;
+  background-image: 
+    linear-gradient(rgba(253, 248, 235, 0.75), rgba(253, 248, 235, 0.75)), 
+    url('/images/anh_banneer.jpg');
+  background-size: contain;
+  background-position: right center;
+  background-repeat: repeat-x;
+}
+
+/* ===== TẦNG 1: UTILITY BAR ===== */
+.header-utility {
+  padding: 7px 0;
+}
+
+.header-utility-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.utility-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.utility-emblem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.utility-logo-img {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  clip-path: circle(49% at 50% 50%);
+}
+
+.utility-title-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.utility-ministry {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1a2d56;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.utility-system-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1a2d56;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.utility-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.utility-hotline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #d4960a;
+  color: #1a2d56;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 5px 14px;
+  border-radius: 4px;
+}
+
+.utility-links {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.utility-links a {
+  font-size: 12px;
+  color: #1a2d56;
+  padding: 4px 10px;
+  border-right: 1px solid rgba(26,45,86,0.2);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+.utility-links a:last-child { border-right: none; }
+.utility-links a:hover { color: white; }
+
+/* ===== TẦNG 2: NAV BAR ===== */
+.header-nav-bar {
+  background: transparent;
+  border-bottom: 3px solid #d4960a;
+}
+
+.header-nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+}
+
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 100%;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+  transition: var(--transition);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: #1e4080;
+  background: #f0f4fc;
+  border-bottom-color: #1e4080;
+}
+
+.nav-link.active {
+  color: #1e4080;
+  border-bottom-color: #1e4080;
+  font-weight: 700;
+}
+
+/* Thời gian + Nút hành động */
+.nav-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.nav-datetime {
+  text-align: right;
+  line-height: 1.2;
+}
+.nav-datetime .time {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a2d56;
+}
+.nav-datetime .date {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.btn-register {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
+  background: transparent;
+  border: 1.5px solid #1e4080;
+  color: #1e4080;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 4px;
+  transition: var(--transition);
+  text-decoration: none;
+}
+.btn-register:hover {
+  background: #e8f0fa;
+}
+
+.btn-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  background: #e07b0a;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 4px;
+  border: none;
+  transition: var(--transition);
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(224,123,10,0.3);
+}
+.btn-login:hover {
+  background: #bf650a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(224,123,10,0.4);
+}
+
+/* Hamburger mobile */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  background: #f0f4fc;
+  border: 1px solid #dde3ec;
+  border-radius: 4px;
+}
+.hamburger span {
+  display: block;
+  height: 2px;
+  background: #1a2d56;
+  border-radius: 2px;
+}
+
+/* ===== MOBILE NAV ===== */
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-top: 2px solid #d4960a;
+  padding: 8px;
+  animation: slideDown 0.18s ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.mobile-nav-link {
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  border-radius: 4px;
+}
+.mobile-nav-link:hover { background: #f0f4fc; color: #1e4080; }
+
+.mobile-nav-login {
+  margin-top: 8px;
+  padding: 11px 14px;
+  text-align: center;
+  background: #e07b0a;
+  color: white;
+  font-weight: 700;
+  border-radius: 4px;
+}
+
+/* =============================================
+   MAIN CONTENT
+   ============================================= */
+.public-main { flex: 1; }
+
+/* =============================================
+   FOOTER
+   ============================================= */
+.public-footer {
+  background: #1a2d56;
+  color: rgba(255,255,255,0.75);
+  padding-top: 48px;
+  border-top: 4px solid #d4960a;
+}
+
+.footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  padding-bottom: 36px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.footer-logo svg { width: 38px; height: 38px; }
+.footer-logo span {
+  font-size: 15px;
+  font-weight: 800;
+  color: white;
+}
+
+.footer-brand p {
+  font-size: 13px;
+  line-height: 1.7;
+  margin-bottom: 14px;
+  color: rgba(255,255,255,0.55);
+}
+
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+}
+
+.footer-col h4 {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #d4960a;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.footer-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.footer-col ul li a {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  transition: color 0.2s;
+}
+.footer-col ul li a:hover { color: white; }
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 16px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.45);
+}
+.footer-bottom strong { color: rgba(255,255,255,0.7); }
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 1024px) {
+  .desktop-nav { display: none; }
+  .hamburger { display: flex; }
+  .nav-datetime { display: none; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+}
+
+@media (max-width: 640px) {
+  .utility-links { display: none; }
+  .utility-title-block .utility-ministry { display: none; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; gap: 6px; text-align: center; }
+}

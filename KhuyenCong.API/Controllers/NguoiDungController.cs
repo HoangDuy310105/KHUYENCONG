@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace KhuyenCong.API.Controllers;
 
 [Authorize(Roles = "Role_Admin")]
-[Route("api/[controller]")]
+[Route("api/nguoi-dung")]
 [ApiController]
 public class NguoiDungController : ControllerBase
 {
@@ -59,6 +59,22 @@ public class NguoiDungController : ControllerBase
         if (!isSuccess) return NotFound(new { Message = "Không tìm thấy người dùng để cập nhật." });
         
         return NoContent();
+    }
+
+    [HttpPost("{id}/approve")]
+    public async Task<IActionResult> Approve(Guid id)
+    {
+        var isSuccess = await _nguoiDungService.ApproveAsync(id);
+        if (!isSuccess) return NotFound(new { Message = "Không tìm thấy người dùng." });
+        return Ok(new { Message = "Duyệt tài khoản thành công." });
+    }
+
+    [HttpPost("{id}/reject")]
+    public async Task<IActionResult> Reject(Guid id)
+    {
+        var isSuccess = await _nguoiDungService.RejectAsync(id);
+        if (!isSuccess) return NotFound(new { Message = "Không tìm thấy người dùng." });
+        return Ok(new { Message = "Từ chối và xóa yêu cầu tài khoản thành công." });
     }
 
     // Khóa/Vô hiệu hóa tài khoản (Thay vì xóa vĩnh viễn)

@@ -23,7 +23,7 @@ public class LinhVucController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "Role_So,Role_Admin")]
+    [Authorize(Roles = "Role_So,Role_Admin,Role_Bo,Role_CoSo,Role_TTKC")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(System.Guid id)
     {
