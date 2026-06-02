@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using KhuyenCong.Core.Enums;
 using KhuyenCong.Service.DTOs;
 
 namespace KhuyenCong.Service.Interfaces;
@@ -13,4 +14,5 @@ public interface IDeAnService
     Task<bool> UpdateAsync(Guid id, DeAnDto deAnDto);
     Task<bool> DeleteAsync(Guid id);
     Task<bool> UpdateStatusAsync(Guid id, int trangThaiMoi, string? ghiChu);
+    Task<bool> QuyetToanAsync(Guid id, Guid userId);
 }

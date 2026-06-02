@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import './DonViPage.css';
 import { Plus, Search, Edit3, Trash2, X, MapPin, Building2, CheckCircle2, AlertCircle, Layers, Briefcase, Phone, Factory, ShieldCheck, AlertTriangle } from 'lucide-react';
-import CustomDialog from '../../components/CustomDialog/CustomDialog';
+import { useDialog } from '../../context/DialogContext';
 
 function DonViPage() {
+  const userRole = localStorage.getItem('role') || localStorage.getItem('userRole');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,10 +18,7 @@ function DonViPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   
-  // Dialog states
-  const [dialogConfig, setDialogConfig] = useState({
-    isOpen: false, title: '', message: '', type: 'info', onConfirm: null
-  });
+  const { showAlert, showConfirm } = useDialog();
 
   // Location APIs state
   const [provinces, setProvinces] = useState([]);
@@ -38,7 +36,9 @@ function DonViPage() {
     maTinh: '',
     maHuyen: '',
     maXa: '',
-    soDienThoai: ''
+    soDienThoai: '',
+    viDo: '',
+    kinhDo: ''
   });
 
   const [formError, setFormError] = useState(null);
@@ -198,13 +198,7 @@ function DonViPage() {
     const check = validateForm();
     if (!check.valid) {
       if (check.popup) {
-        setDialogConfig({
-          isOpen: true,
-          title: 'Cảnh báo Địa lý (Không đủ điều kiện)',
-          message: check.message,
-          type: 'danger',
-          onConfirm: () => setDialogConfig(prev => ({ ...prev, isOpen: false }))
-        });
+        showAlert('Cảnh báo Địa lý (Không đủ điều kiện)', check.message, 'danger');
       } else {
         setFormError(check.message);
       }
@@ -238,39 +232,24 @@ function DonViPage() {
       closeModal();
       
       // Hiển thị thông báo thành công
-      setDialogConfig({
-        isOpen: true,
-        title: 'Thành công',
-        message: editingId ? 'Đã cập nhật thông tin Đơn vị thành công!' : 'Đã thêm mới Đơn vị thành công!',
-        type: 'info',
-        onConfirm: () => {
-          setDialogConfig(prev => ({ ...prev, isOpen: false }));
-          fetchData();
-        }
-      });
+      await showAlert('Thành công', editingId ? 'Đã cập nhật thông tin Đơn vị thành công!' : 'Đã thêm mới Đơn vị thành công!', 'info');
+      fetchData();
       
     } catch (err) {
       setFormError('Có lỗi xảy ra khi lưu dữ liệu. Vui lòng thử lại.');
     }
   };
 
-  const handleDelete = (id) => {
-    setDialogConfig({
-      isOpen: true,
-      title: 'Xác nhận xóa',
-      message: 'Bạn có chắc chắn muốn xóa đơn vị này? Hành động này không thể hoàn tác.',
-      type: 'warning',
-      onConfirm: async () => {
-        try {
-          await api.delete(`/donvi/${id}`);
-          fetchData();
-        } catch (err) {
-          alert('Lỗi khi xóa đơn vị');
-        } finally {
-          setDialogConfig(prev => ({ ...prev, isOpen: false }));
-        }
+  const handleDelete = async (id) => {
+    const isConfirmed = await showConfirm('Xác nhận xóa', 'Bạn có chắc chắn muốn xóa đơn vị này? Hành động này không thể hoàn tác.', 'warning');
+    if (isConfirmed) {
+      try {
+        await api.delete(`/donvi/${id}`);
+        fetchData();
+      } catch (err) {
+        showAlert('Lỗi', 'Lỗi khi xóa đơn vị', 'danger');
       }
-    });
+    }
   };
 
   // Rendering Helpers
@@ -361,9 +340,11 @@ function DonViPage() {
           <h1 className="dv-page-title">Quản lý Đơn vị & Doanh nghiệp</h1>
           <p className="dv-page-subtitle">Kết nối dữ liệu Danh mục Địa giới Hành chính trực tiếp qua API</p>
         </div>
-        <button className="dv-btn-add" onClick={openAddModal}>
-          <Plus size={18} /> Thêm Đơn vị
-        </button>
+        {(userRole === '4' || userRole === '2' || userRole === 'Role_Admin' || userRole === 'Role_So') && (
+          <button className="dv-btn-add" onClick={openAddModal}>
+            <Plus size={18} /> Thêm Đơn vị
+          </button>
+        )}
       </div>
 
       <div className="dv-kpi-grid">
@@ -479,14 +460,16 @@ function DonViPage() {
                 
                 <div className="dv-card-footer">
                   <span style={{fontSize: 11, color: '#94a3b8', fontFamily: 'monospace'}}>ID: {item.id}</span>
-                  <div className="dv-action-btns">
-                    <button className="dv-btn-action edit" onClick={() => openEditModal(item)}>
-                      <Edit3 size={14}/> Sửa
-                    </button>
-                    <button className="dv-btn-action delete" onClick={() => handleDelete(item.id)}>
-                      <Trash2 size={14}/> Xóa
-                    </button>
-                  </div>
+                  {(userRole === '4' || userRole === '2' || userRole === 'Role_Admin' || userRole === 'Role_So') && (
+                    <div className="dv-action-btns">
+                      <button className="dv-btn-action edit" onClick={() => openEditModal(item)}>
+                        <Edit3 size={14}/> Sửa
+                      </button>
+                      <button className="dv-btn-action delete" onClick={() => handleDelete(item.id)}>
+                        <Trash2 size={14}/> Xóa
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))
@@ -594,6 +577,15 @@ function DonViPage() {
                   <label className="dv-label">Số điện thoại liên hệ</label>
                   <input className="dv-input" type="text" value={formData.soDienThoai} onChange={e => setFormData({...formData, soDienThoai: e.target.value})} placeholder="09xxxxxxx" />
                 </div>
+
+                <div className="dv-form-group">
+                  <label className="dv-label">Vĩ độ (Latitude) - Bản đồ GIS</label>
+                  <input className="dv-input" type="number" step="0.000001" value={formData.viDo || ''} onChange={e => setFormData({...formData, viDo: parseFloat(e.target.value) || null})} placeholder="VD: 10.2384" />
+                </div>
+                <div className="dv-form-group">
+                  <label className="dv-label">Kinh độ (Longitude) - Bản đồ GIS</label>
+                  <input className="dv-input" type="number" step="0.000001" value={formData.kinhDo || ''} onChange={e => setFormData({...formData, kinhDo: parseFloat(e.target.value) || null})} placeholder="VD: 106.3768" />
+                </div>
               </div>
             </div>
             <div className="dv-modal-footer">
@@ -604,14 +596,6 @@ function DonViPage() {
         </div>
       )}
 
-      <CustomDialog 
-        isOpen={dialogConfig.isOpen}
-        title={dialogConfig.title}
-        message={dialogConfig.message}
-        type={dialogConfig.type}
-        onConfirm={dialogConfig.onConfirm}
-        onCancel={() => setDialogConfig(prev => ({...prev, isOpen: false}))}
-      />
     </div>
   );
 }

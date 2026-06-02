@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { useDialog } from '../../context/DialogContext';
 import './AdminLayout.css';
 
 /* ================================================================
@@ -46,25 +47,20 @@ const NAV_BY_ROLE = {
         { label: 'Sản phẩm OCOP', icon: 'fa-award', path: '/ocop' },
       ]
     },
-    {
-      section: 'Báo cáo', items: [
-        { label: 'Báo cáo TT34', icon: 'fa-chart-line', path: '/bao-cao' },
-      ]
-    },
   ],
-  // Role 3: Bộ Công Thương
+  // Role 3: Bộ Công Thương (Cao nhất / Admin)
   '3': [
     {
       section: 'Hệ thống chính', items: [
-        { label: 'Dashboard', icon: 'fa-chart-pie', path: '/dashboard' },
+        { label: 'Tổng quan Hệ thống', icon: 'fa-chart-pie', path: '/dashboard' },
         { label: 'Bản đồ GIS', icon: 'fa-map-location-dot', path: '/ban-do' }
       ]
     },
     {
-      section: 'Quản lý Đề án', items: [
-        { label: 'Phê duyệt cấp Bộ', icon: 'fa-stamp', path: '/de-an' },
+      section: 'Nghiệp vụ', items: [
+        { label: 'Toàn bộ Đề án', icon: 'fa-list-check', path: '/de-an' },
+        { label: 'Kinh phí & Quyết toán', icon: 'fa-vault', path: '/giai-ngan' },
         { label: 'Thanh lý Quyết toán', icon: 'fa-file-invoice-dollar', path: '/quyet-toan' },
-        { label: 'Giải ngân Kinh phí', icon: 'fa-vault', path: '/giai-ngan' },
       ]
     },
     {
@@ -77,11 +73,16 @@ const NAV_BY_ROLE = {
     {
       section: 'Phân tích & Báo cáo', items: [
         { label: 'Chỉ tiêu KPI', icon: 'fa-chart-line', path: '/kpi' },
-        { label: 'Báo cáo TT 34', icon: 'fa-file-contract', path: '/bao-cao' },
+      ]
+    },
+    {
+      section: 'Cấu hình System', items: [
+        { label: 'Quản lý Người dùng', icon: 'fa-users', path: '/nguoi-dung' },
+        { label: 'Lĩnh vực & Loại ĐA', icon: 'fa-layer-group', path: '/linh-vuc' },
       ]
     },
   ],
-  // Role 4: Admin
+  // Role 4: Admin (Giữ nguyên hoặc ẩn, nhưng user muốn Role Bộ là Admin)
   '4': [
     {
       section: 'Hệ thống chính', items: [
@@ -105,7 +106,6 @@ const NAV_BY_ROLE = {
     {
       section: 'Phân tích & Báo cáo', items: [
         { label: 'Chỉ tiêu KPI', icon: 'fa-chart-line', path: '/kpi' },
-        { label: 'Báo cáo TT 34', icon: 'fa-file-contract', path: '/bao-cao' },
       ]
     },
     {
@@ -119,19 +119,20 @@ const NAV_BY_ROLE = {
   '5': [
     { section: 'Hệ thống chính', items: [{ label: 'Dashboard', icon: 'fa-chart-pie', path: '/dashboard' }] },
     {
-      section: 'Quản lý Đề án', items: [
+      section: 'Nghiệp vụ Đề án', items: [
         { label: 'Quản lý Đề án', icon: 'fa-list-check', path: '/de-an' },
       ]
     },
     {
-      section: 'Tài chính', items: [
-        { label: 'Giải ngân Kinh phí', icon: 'fa-vault', path: '/giai-ngan' },
+      section: 'Theo dõi Tài chính', items: [
+        { label: 'Theo dõi Kinh phí', icon: 'fa-magnifying-glass-dollar', path: '/giai-ngan' },
       ]
     },
     {
       section: 'Cơ sở dữ liệu', items: [
         { label: 'Doanh nghiệp', icon: 'fa-shop', path: '/don-vi' },
         { label: 'Sản phẩm OCOP', icon: 'fa-award', path: '/ocop' },
+        { label: 'Văn bản & Biểu mẫu', icon: 'fa-book-bookmark', path: '/van-ban' },
       ]
     },
   ],
@@ -151,9 +152,11 @@ const ROLE_INFO = {
    XUẤT GIAO DIỆN THEO KIỂU PROTOTYPE
    ================================================================ */
 function AdminLayout() {
+  const { showAlert, showConfirm } = useDialog();
   const navigate = useNavigate();
   const [collapsed] = useState(false);
   const [pendingUsers, setPendingUsers] = useState([]);
+  const [progressReminders, setProgressReminders] = useState([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [detailedUnit, setDetailedUnit] = useState(null);
@@ -175,10 +178,26 @@ function AdminLayout() {
     }
   };
 
+  const fetchProgressReminders = async () => {
+    try {
+      const res = await api.get('/dean?trangThai=6&pageSize=100');
+      const items = res.data?.items || (Array.isArray(res.data) ? res.data : []);
+      // Chỉ lấy đề án đang thực hiện
+      const reminders = items.filter(x => x.trangThai === 6);
+      setProgressReminders(reminders);
+    } catch (err) {
+      console.error("Lỗi tải thông báo nhắc nhở", err);
+    }
+  };
+
   useEffect(() => {
-    if (roleKey === '4') {
+    if (roleKey === '4' || roleKey === '3') {
       fetchPendingUsers();
       const interval = setInterval(fetchPendingUsers, 20000);
+      return () => clearInterval(interval);
+    } else if (roleKey === '1' || roleKey === '5') {
+      fetchProgressReminders();
+      const interval = setInterval(fetchProgressReminders, 20000);
       return () => clearInterval(interval);
     }
   }, [roleKey]);
@@ -187,20 +206,21 @@ function AdminLayout() {
     try {
       await api.post(`/nguoi-dung/${id}/approve`);
       fetchPendingUsers();
-      alert("Đã duyệt kích hoạt tài khoản thành công!");
+      showAlert("Thành công", "Đã duyệt kích hoạt tài khoản thành công!", "success");
     } catch (err) {
-      alert("Lỗi phê duyệt tài khoản: " + (err.response?.data?.message || err.message));
+      showAlert("Lỗi", "Lỗi phê duyệt tài khoản: " + (err.response?.data?.message || err.message), "danger");
     }
   };
 
   const handleReject = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn từ chối và xóa yêu cầu tài khoản này?")) {
+    const isConfirmed = await showConfirm("Từ chối tài khoản", "Bạn có chắc chắn muốn từ chối và xóa yêu cầu tài khoản này?", "warning");
+    if (isConfirmed) {
       try {
         await api.post(`/nguoi-dung/${id}/reject`);
         fetchPendingUsers();
-        alert("Đã từ chối và xóa tài khoản thành công!");
+        showAlert("Thành công", "Đã từ chối và xóa tài khoản thành công!", "success");
       } catch (err) {
-        alert("Lỗi từ chối tài khoản: " + (err.response?.data?.message || err.message));
+        showAlert("Lỗi", "Lỗi từ chối tài khoản: " + (err.response?.data?.message || err.message), "danger");
       }
     }
   };
@@ -300,38 +320,84 @@ function AdminLayout() {
                 <input type="text" placeholder="Tìm kiếm toàn hệ thống..." />
               </div>
               <div style={{ width: '1px', height: '28px', background: '#e2e8f0' }}></div>
+              <button 
+                className="text-slate-400 hover:text-indigo-600 transition-colors relative" 
+                onClick={() => navigate('/')}
+                title="Trang chủ Cổng thông tin"
+              >
+                <i className="fa-solid fa-house text-lg"></i>
+              </button>
               <div className="notif-wrapper">
                 <button className="text-slate-400 hover:text-indigo-600 transition-colors relative" onClick={() => setShowNotifDropdown(!showNotifDropdown)}>
                   <i className="fa-solid fa-bell text-lg"></i>
-                  {pendingUsers.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-rose-500" style={{ border: '2px solid #ffffff' }}></span>}
+                  {(roleKey === '3' || roleKey === '4') && pendingUsers.length > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold text-white bg-rose-500 rounded-full shadow-sm border-2 border-white">
+                      {pendingUsers.length > 99 ? '99+' : pendingUsers.length}
+                    </span>
+                  )}
+                  {(roleKey === '1' || roleKey === '5') && progressReminders.length > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold text-white bg-orange-500 rounded-full shadow-sm border-2 border-white">
+                      {progressReminders.length > 99 ? '99+' : progressReminders.length}
+                    </span>
+                  )}
                 </button>
                 {showNotifDropdown && (
                   <div className="notif-dropdown">
-                    <div className="notif-header">
-                      <span>Yêu cầu phê duyệt tài khoản</span>
-                      <span className="notif-badge-count">{pendingUsers.length}</span>
-                    </div>
-                    <div className="notif-list custom-scrollbar">
-                      {pendingUsers.length === 0 ? (
-                        <div className="notif-empty">
-                          <i className="fa-solid fa-check-circle" style={{fontSize:'24px', opacity: 0.5}}></i>
-                          Không có yêu cầu nào.
+                    {(roleKey === '3' || roleKey === '4') ? (
+                      <>
+                        <div className="notif-header">
+                          <span>Yêu cầu phê duyệt tài khoản</span>
+                          <span className="notif-badge-count">{pendingUsers.length}</span>
                         </div>
-                      ) : (
-                        pendingUsers.map(user => (
-                          <div key={user.id} className="notif-item">
-                            <div className="notif-user-info">
-                              <div className="notif-username">{user.username}</div>
-                              <div className="notif-company">{user.tenDonVi || 'Đang tải...'}</div>
+                        <div className="notif-list custom-scrollbar">
+                          {pendingUsers.length === 0 ? (
+                            <div className="notif-empty">
+                              <i className="fa-solid fa-check-circle" style={{fontSize:'24px', opacity: 0.5}}></i>
+                              Không có yêu cầu nào.
                             </div>
-                            <div className="notif-actions">
-                              <button onClick={() => handleApprove(user.id)} className="btn-notif btn-notif-approve flex-1 justify-center">Duyệt</button>
-                              <button onClick={() => handleViewDetails(user)} className="btn-notif btn-notif-view flex-1 justify-center">Chi tiết</button>
+                          ) : (
+                            pendingUsers.map(user => (
+                              <div key={user.id} className="notif-item">
+                                <div className="notif-user-info">
+                                  <div className="notif-username">{user.username}</div>
+                                  <div className="notif-company">{user.tenDonVi || 'Đang tải...'}</div>
+                                </div>
+                                <div className="notif-actions">
+                                  <button onClick={() => handleApprove(user.id)} className="btn-notif btn-notif-approve flex-1 justify-center">Duyệt</button>
+                                  <button onClick={() => handleViewDetails(user)} className="btn-notif btn-notif-view flex-1 justify-center">Chi tiết</button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="notif-header" style={{ backgroundColor: '#fff7ed', color: '#ea580c', borderBottom: '1px solid #fed7aa' }}>
+                          <span style={{ fontWeight: 600 }}>Nhắc nhở báo cáo tiến độ</span>
+                          <span className="notif-badge-count" style={{ backgroundColor: '#ea580c', color: 'white' }}>{progressReminders.length}</span>
+                        </div>
+                        <div className="notif-list custom-scrollbar">
+                          {progressReminders.length === 0 ? (
+                            <div className="notif-empty" style={{ color: '#64748b' }}>
+                              <i className="fa-solid fa-mug-hot" style={{fontSize:'24px', opacity: 0.5}}></i>
+                              Không có nhắc nhở nào.
                             </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
+                          ) : (
+                            progressReminders.map(prj => (
+                              <div key={prj.id} className="notif-item" style={{ cursor: 'pointer', borderLeft: '3px solid #ea580c' }} onClick={() => { setShowNotifDropdown(false); navigate('/de-an'); }}>
+                                <div className="notif-user-info" style={{ width: '100%' }}>
+                                  <div className="notif-username" style={{ color: '#334155', fontWeight: 600, fontSize: '13px' }}>{prj.tenDeAn}</div>
+                                  <div className="notif-company" style={{ color: '#ea580c', fontSize: '12px', marginTop: '4px' }}>
+                                    <i className="fa-regular fa-clock"></i> Đề án đang thực hiện. Vui lòng cập nhật báo cáo tiến độ.
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

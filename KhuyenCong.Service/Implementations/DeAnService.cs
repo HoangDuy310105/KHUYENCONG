@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using KhuyenCong.Core.Entities;
 using KhuyenCong.Core.Interfaces;
+using KhuyenCong.Core.Enums;
 using KhuyenCong.Service.DTOs;
 using KhuyenCong.Service.Interfaces;
 
@@ -68,27 +69,14 @@ public class DeAnService : IDeAnService
 
     public async Task<DeAnDto?> GetByIdAsync(Guid id)
     {
-        // Repository cơ bản chưa include Navigation Properties.
-        // Tạm thời trả về entity đơn thuần.
-        var entity = await _unitOfWork.DeAns.GetByIdAsync(id);
+        // Sử dụng FindAsync để có thể Include các bảng liên quan
+        var entities = await _unitOfWork.DeAns.FindAsync(x => x.Id == id, "LinhVuc,DonViThuHuong,DonViThiCong,DonViGiamSat,GiaiNgans,TienDoThucHiens");
+        var entity = entities.FirstOrDefault();
+        
         if (entity == null) return null;
 
         var dto = _mapper.Map<DeAnDto>(entity);
-        
-        // Cập nhật thông tin mở rộng nếu cần
-        if (entity.LinhVucId != Guid.Empty)
-        {
-            var linhVuc = await _unitOfWork.LinhVucs.GetByIdAsync(entity.LinhVucId);
-            dto.TenLinhVuc = linhVuc?.TenLinhVuc;
-        }
-
-        if (entity.DonViThuHuongId != Guid.Empty)
-        {
-            var donVi = await _unitOfWork.DonVis.GetByIdAsync(entity.DonViThuHuongId);
-            dto.TenDonViThuHuong = donVi?.TenDonVi;
-            dto.DiaChi = donVi?.DiaChi;
-        }
-
+        dto.SoLuongBaoCaoTienDo = entity.TienDoThucHiens?.Count ?? 0;
         return dto;
     }
 
@@ -102,23 +90,21 @@ public class DeAnService : IDeAnService
             && (!trangThai.HasValue || (int)x.TrangThai == trangThai.Value)
             && (!isCoSo || (userDonViId.HasValue && (x.DonViThuHuongId == userDonViId.Value || x.DonViThiCongId == userDonViId.Value)));
 
-        var (items, totalCount) = await _unitOfWork.DeAns.GetPagedAsync(page, pageSize, filter);
+        var (items, totalCount) = await _unitOfWork.DeAns.GetPagedAsync(page, pageSize, filter, "LinhVuc,DonViThuHuong,DonViThiCong,DonViGiamSat,GiaiNgans,TienDoThucHiens");
 
         var dtos = _mapper.Map<IEnumerable<DeAnDto>>(items).ToList();
 
-        // Cập nhật thêm thông tin hiển thị (Nên dùng Include trong Repo thay vì vòng lặp, nhưng tạm thời để MVP)
+        // [MOCK/DEMO] Nếu chưa có tọa độ trong DB, tự động random tọa độ khu vực Bến Tre để hiển thị lên bản đồ
         foreach (var dto in dtos)
         {
-            if (dto.LinhVucId != Guid.Empty)
+            var item = items.First(x => x.Id == dto.Id);
+            dto.SoLuongBaoCaoTienDo = item.TienDoThucHiens?.Count ?? 0;
+
+            if (dto.ViDo == null || dto.ViDo == 0 || dto.KinhDo == null || dto.KinhDo == 0)
             {
-                var linhVuc = await _unitOfWork.LinhVucs.GetByIdAsync(dto.LinhVucId);
-                dto.TenLinhVuc = linhVuc?.TenLinhVuc;
-            }
-            if (dto.DonViThuHuongId != Guid.Empty)
-            {
-                var donVi = await _unitOfWork.DonVis.GetByIdAsync(dto.DonViThuHuongId);
-                dto.TenDonViThuHuong = donVi?.TenDonVi;
-                dto.DiaChi = donVi?.DiaChi;
+                var rand = new Random(dto.Id.GetHashCode());
+                dto.ViDo = 10.1 + (rand.NextDouble() * 0.3);
+                dto.KinhDo = 106.2 + (rand.NextDouble() * 0.4);
             }
         }
 
@@ -153,6 +139,43 @@ public class DeAnService : IDeAnService
         return true;
     }
 
+    public async Task<bool> UpdateStatusAsync(Guid id, TrangThaiDeAn newStatus)
+    {
+        var deAn = await _unitOfWork.DeAns.GetByIdAsync(id);
+        if (deAn == null) return false;
+
+        deAn.TrangThai = newStatus;
+        deAn.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.DeAns.Update(deAn);
+        return await _unitOfWork.CompleteAsync() > 0;
+    }
+
+    public async Task<bool> QuyetToanAsync(Guid id, Guid userId)
+    {
+        var deAn = await _unitOfWork.DeAns.GetByIdAsync(id);
+        if (deAn == null) return false;
+
+        deAn.TrangThai = TrangThaiDeAn.DaQuyetToan;
+        deAn.UpdatedAt = DateTime.UtcNow;
+        
+        var lichSu = new KhuyenCong.Core.Entities.LichSuThaoTac
+        {
+            Id = Guid.NewGuid(),
+            DeAnId = deAn.Id,
+            NguoiDungId = userId,
+            HanhDong = "Thanh lý Quyết toán",
+            TrangThaiCu = deAn.TrangThai,
+            TrangThaiMoi = TrangThaiDeAn.DaQuyetToan,
+            LyDo = "Đã hoàn thành quyết toán dự án.",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        await _unitOfWork.LichSuThaoTacs.AddAsync(lichSu);
+
+        _unitOfWork.DeAns.Update(deAn);
+        return await _unitOfWork.CompleteAsync() > 0;
+    }
+
     public async Task<bool> UpdateStatusAsync(Guid id, int trangThaiMoi, string? ghiChu)
     {
         var entity = await _unitOfWork.DeAns.GetByIdAsync(id);
@@ -163,6 +186,16 @@ public class DeAnService : IDeAnService
         if (!string.IsNullOrEmpty(ghiChu))
         {
             entity.GhiChu = ghiChu;
+        }
+
+        // BR-R03: Điều kiện xin Nghiệm thu: Số lượng Báo cáo tiến độ >= 1
+        if (trangThaiMoi == (int)KhuyenCong.Core.Enums.TrangThaiDeAn.DaNghiemThu)
+        {
+            var baoCaos = await _unitOfWork.TienDoThucHiens.FindAsync(x => x.DeAnId == id);
+            if (!baoCaos.Any())
+            {
+                throw new Exception("Không thể chuyển sang Đã Nghiệm Thu: Yêu cầu Đề án phải nộp ít nhất 1 báo cáo tiến độ thi công.");
+            }
         }
 
         // TODO: Lưu vết Audit Log với Ghi chú

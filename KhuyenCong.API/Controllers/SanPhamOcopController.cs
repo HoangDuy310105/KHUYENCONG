@@ -20,9 +20,18 @@ public class SanPhamOcopController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? capChungNhan = null, [FromQuery] int? phanHangSao = null, [FromQuery] int? loaiSanPham = null, [FromQuery] int? trangThai = null)
+    public async Task<IActionResult> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? capChungNhan = null, [FromQuery] int? phanHangSao = null, [FromQuery] int? loaiSanPham = null, [FromQuery] string? trangThaiList = null)
     {
-        var (items, totalCount) = await _service.GetPagedAsync(page, pageSize, search, capChungNhan, phanHangSao, loaiSanPham, trangThai);
+        var userRoleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var donViIdClaim = User.FindFirst("DonViId")?.Value;
+
+        Guid? userDonViId = null;
+        if (!string.IsNullOrEmpty(donViIdClaim) && Guid.TryParse(donViIdClaim, out var parsedDonViId))
+        {
+            userDonViId = parsedDonViId;
+        }
+
+        var (items, totalCount) = await _service.GetPagedAsync(page, pageSize, search, capChungNhan, phanHangSao, loaiSanPham, trangThaiList, userDonViId, userRoleClaim);
         return Ok(new
         {
             data = items,

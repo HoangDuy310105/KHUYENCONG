@@ -22,6 +22,7 @@ public class UnitOfWork : IUnitOfWork
         TienDoThucHiens = new Repository<TienDoThucHien>(_context);
         LichSuThaoTacs = new Repository<LichSuThaoTac>(_context);
         SanPhamOcops = new Repository<SanPhamOcop>(_context);
+        VanBanPhapLuats = new Repository<VanBanPhapLuat>(_context);
     }
 
     public IRepository<DeAn> DeAns { get; private set; }
@@ -33,6 +34,7 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<TienDoThucHien> TienDoThucHiens { get; private set; }
     public IRepository<LichSuThaoTac> LichSuThaoTacs { get; private set; }
     public IRepository<SanPhamOcop> SanPhamOcops { get; private set; }
+    public IRepository<VanBanPhapLuat> VanBanPhapLuats { get; private set; }
 
     public async Task<int> CompleteAsync()
     {

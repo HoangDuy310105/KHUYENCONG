@@ -115,27 +115,42 @@ public class DeAnController : ControllerBase
                     return Forbid("Chỉ Cục Công Thương mới có quyền phê duyệt đề án.");
                 nextState = 5; // Đã phê duyệt
                 break;
-            case 5: 
-                nextState = 6; // Đang thực hiện
+            case 7:
+                if (userRoleClaim != "Role_Bo" && !isAdmin)
+                    return Forbid("Chỉ Cục Công Thương mới có quyền quyết toán đề án.");
+                nextState = 8; // Đã quyết toán
                 break;
             default: 
                 return BadRequest("Trạng thái hiện tại không hợp lệ để duyệt.");
         }
         
-        var updated = await _deAnService.UpdateStatusAsync(id, nextState, "Đã duyệt hồ sơ");
-        if (!updated) return NotFound();
-        return Ok(new { Message = "Đã duyệt hồ sơ thành công" });
+        try
+        {
+            var updated = await _deAnService.UpdateStatusAsync(id, nextState, "Đã duyệt hồ sơ");
+            if (!updated) return NotFound();
+            return Ok(new { Message = "Đã duyệt hồ sơ thành công" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     [HttpPost("{id}/tra-ve")]
     [Authorize(Roles = "Role_So,Role_Bo,Role_Admin")]
-    public async Task<IActionResult> TraHoSo(Guid id, [FromBody] string lyDo)
+    public async Task<IActionResult> TraHoSo(Guid id, [FromBody] TraHoSoRequest request)
     {
-        if (string.IsNullOrWhiteSpace(lyDo))
+        if (string.IsNullOrWhiteSpace(request.LyDo))
             return BadRequest(new { Message = "Bắt buộc phải nhập lý do yêu cầu bổ sung." });
 
+        var ghiChu = request.LyDo;
+        if (!string.IsNullOrWhiteSpace(request.FileUrl))
+        {
+            ghiChu += $"|FILE|{request.FileUrl}";
+        }
+
         // Trạng thái 3 = Yêu cầu bổ sung
-        var updated = await _deAnService.UpdateStatusAsync(id, 3, lyDo);
+        var updated = await _deAnService.UpdateStatusAsync(id, 3, ghiChu);
         if (!updated) return NotFound();
         return Ok(new { Message = "Đã trả lại hồ sơ yêu cầu bổ sung" });
     }
@@ -154,15 +169,57 @@ public class DeAnController : ControllerBase
     }
 
     [HttpPost("{id}/nghiem-thu")]
-    [Authorize(Roles = "Role_So,Role_Admin")]
+    [Authorize(Roles = "Role_CoSo,Role_TTKC,Role_Admin")]
     public async Task<IActionResult> NghiemThu(Guid id, [FromBody] string fileUrl)
     {
         if (string.IsNullOrWhiteSpace(fileUrl))
             return BadRequest(new { Message = "Bắt buộc phải đính kèm file Biên bản nghiệm thu." });
 
-        // Trạng thái 7 = Đã nghiệm thu
-        var updated = await _deAnService.UpdateStatusAsync(id, 7, "Đã nghiệm thu. File đính kèm: " + fileUrl);
+        try
+        {
+            // Trạng thái 7 = Đã nghiệm thu
+            var updated = await _deAnService.UpdateStatusAsync(id, 7, "Đã nghiệm thu. File đính kèm: " + fileUrl);
+            if (!updated) return NotFound();
+            return Ok(new { Message = "Đã nghiệm thu đề án thành công." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    [HttpPost("{id}/ky-hop-dong")]
+    [Authorize(Roles = "Role_CoSo,Role_TTKC,Role_So,Role_Bo,Role_Admin")]
+    public async Task<IActionResult> KyHopDong(Guid id, [FromBody] string fileUrl)
+    {
+        if (string.IsNullOrWhiteSpace(fileUrl))
+            return BadRequest(new { Message = "Bắt buộc phải đính kèm file Hợp đồng." });
+
+        // Trạng thái 6 = Đang thực hiện (sau khi ký hợp đồng)
+        var updated = await _deAnService.UpdateStatusAsync(id, 6, "Đã ký hợp đồng. File đính kèm: " + fileUrl);
         if (!updated) return NotFound();
-        return Ok(new { Message = "Đã nghiệm thu đề án thành công." });
+        return Ok(new { Message = "Đã ký hợp đồng đề án thành công." });
+    }
+
+    [HttpPost("{id}/quyet-toan")]
+    [Authorize(Roles = "Role_Admin,Role_Bo")]
+    public async Task<IActionResult> QuyetToan(Guid id)
+    {
+        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
+        {
+            return Unauthorized(new { message = "Không xác định được người dùng" });
+        }
+
+        try 
+        {
+            var result = await _deAnService.QuyetToanAsync(id, userId);
+            if (!result) return NotFound(new { message = "Không tìm thấy Đề án hoặc lỗi khi quyết toán" });
+            return Ok(new { message = "Quyết toán thành công" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 }

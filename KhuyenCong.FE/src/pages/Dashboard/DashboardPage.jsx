@@ -14,11 +14,48 @@ import {
 } from 'chart.js';
 import { Bar, Doughnut, Line, Radar } from 'react-chartjs-2';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+
 import 'leaflet/dist/leaflet.css';
 import './DashboardPage.css';
 import '../DeAn/DeAnList.css'; // Import CSS của Quản lý đề án để tái sử dụng giao diện
 import CoSoDashboard from './CoSoDashboard';
+
+// Custom Icon cho các trạng thái khác nhau
+const createIcon = (color) => {
+  return new L.Icon({
+    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+};
+
+const icons = {
+  blue: createIcon('blue'),
+  green: createIcon('green'),
+  red: createIcon('red'),
+  orange: createIcon('orange'),
+  violet: createIcon('violet'),
+  grey: createIcon('grey'),
+  black: createIcon('black')
+};
+
+const MAP_ICONS = {
+  0: { label: 'Bản Nháp', icon: icons.grey, color: '#64748b' },
+  1: { label: 'Chờ Sở Thẩm Định', icon: icons.orange, color: '#d97706' },
+  2: { label: 'Chờ Cục Thẩm Định', icon: icons.orange, color: '#d97706' },
+  3: { label: 'Yêu Cầu Bổ Sung', icon: icons.red, color: '#b91c1c' },
+  4: { label: 'Bị Từ Chối', icon: icons.red, color: '#dc2626' },
+  5: { label: 'Đã Phê Duyệt', icon: icons.blue, color: '#0369a1' },
+  6: { label: 'Đang Thực Hiện', icon: icons.green, color: '#047857' },
+  7: { label: 'Đã Nghiệm Thu', icon: icons.violet, color: '#6d28d9' },
+  8: { label: 'Đã Quyết Toán', icon: icons.black, color: '#1e293b' },
+};
 import SoDashboard from './SoDashboard';
+import { useDialog } from '../../context/DialogContext';
+import confetti from 'canvas-confetti';
 
 ChartJS.register(
   CategoryScale, LinearScale, BarElement, ArcElement, 
@@ -162,6 +199,11 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
     if (!await showConfirm('Bạn có chắc chắn muốn nộp hồ sơ đề án này?')) return;
     try {
       await api.post(`/dean/${item.id}/nop`);
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
       await showAlert('Nộp hồ sơ thành công!');
       onRefresh();
     } catch (err) {
@@ -334,71 +376,7 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
   );
 }
 
-function CustomDialog({ dialog, setDialog }) {
-  if (!dialog.isOpen) return null;
-
-  const close = () => setDialog({ ...dialog, isOpen: false });
-  
-  const handleConfirm = () => {
-    if (dialog.type === 'prompt') {
-      const val = document.getElementById('dialog-prompt-input').value;
-      if (dialog.onConfirm) dialog.onConfirm(val);
-    } else {
-      if (dialog.onConfirm) dialog.onConfirm(true);
-    }
-    close();
-  };
-  
-  const handleCancel = () => {
-    if (dialog.onConfirm) dialog.onConfirm(dialog.type === 'prompt' ? null : false);
-    close();
-  };
-
-  const isAlert = dialog.type === 'alert';
-  const isPrompt = dialog.type === 'prompt';
-
-  return (
-    <div className="custom-dialog-overlay animate-backdrop">
-      <div className="custom-dialog-modal animate-popup">
-        <div className="custom-dialog-body-flex">
-          <div className="custom-dialog-icon-col">
-            <div className={`custom-dialog-icon-circle ${isAlert ? 'bg-blue' : 'bg-red'}`}>
-              {isAlert ? <Info size={24} strokeWidth={2.5} /> : <HelpCircle size={24} strokeWidth={2.5} />}
-            </div>
-          </div>
-          
-          <div className="custom-dialog-content-col">
-            <h3 className="custom-dialog-title">
-              {isAlert ? 'Thông báo' : isPrompt ? 'Nhập thông tin' : 'Xác nhận'}
-            </h3>
-            <p className="custom-dialog-message">{dialog.message}</p>
-            {isPrompt && (
-              <input 
-                type="text" 
-                id="dialog-prompt-input" 
-                className="custom-dialog-input" 
-                autoFocus 
-              />
-            )}
-            
-            <div className="custom-dialog-footer">
-              {!isAlert && (
-                <button onClick={handleCancel} className="custom-dialog-btn btn-text-cancel">
-                  Bỏ qua
-                </button>
-              )}
-              <button onClick={handleConfirm} className="custom-dialog-btn btn-red-confirm">
-                {isAlert ? 'Đóng' : 'Xác nhận'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
+// ── CUSTOM DIALOG REMOVED ───────────────────────────────────────────────────
 function DashboardPage() {
   const navigate = useNavigate();
   const [allDeAns, setAllDeAns] = useState([]);
@@ -410,11 +388,14 @@ function DashboardPage() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [rejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
-  const [dialog, setDialog] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
-
-  const showConfirm = (message) => new Promise(resolve => setDialog({ isOpen: true, type: 'confirm', message, onConfirm: resolve }));
-  const showAlert = (message) => new Promise(resolve => setDialog({ isOpen: true, type: 'alert', message, onConfirm: resolve }));
-  const showPrompt = (message) => new Promise(resolve => setDialog({ isOpen: true, type: 'prompt', message, onConfirm: resolve }));
+  const { showAlert: contextShowAlert, showConfirm: contextShowConfirm, showPrompt: contextShowPrompt } = useDialog();
+  const showConfirm = (message) => contextShowConfirm('Xác nhận', message, 'warning');
+  const showAlert = (message) => contextShowAlert('Thông báo', message, 'info');
+  const showPrompt = (message) => contextShowPrompt('Nhập thông tin', message);
+  
+  const [dashboardSummary, setDashboardSummary] = useState(null);
+  const [dashboardCharts, setDashboardCharts] = useState([]);
+  const [mapMarkers, setMapMarkers] = useState([]);
   
   const userRole = localStorage.getItem('role') || '4';
   const isCoSo = userRole === 'Role_CoSo' || userRole === '1';
@@ -426,16 +407,24 @@ function DashboardPage() {
   useEffect(() => {
     Promise.all([
       api.get('/linhvuc'),
-      api.get('/dean?page=1&pageSize=100')
-    ]).then(([lvRes, daRes]) => {
+      api.get('/dean?page=1&pageSize=100'),
+      api.get('/dashboard/summary').catch(() => ({ data: null })),
+      api.get('/dashboard/charts').catch(() => ({ data: [] })),
+      api.get('/dashboard/gis-map').catch(() => ({ data: [] }))
+    ]).then(([lvRes, daRes, summaryRes, chartsRes, mapRes]) => {
       setLinhVucs(lvRes.data || []);
+      if (summaryRes.data) setDashboardSummary(summaryRes.data);
+      if (chartsRes.data) setDashboardCharts(chartsRes.data);
+      if (mapRes.data) setMapMarkers(mapRes.data);
+
       const daList = daRes.data?.Items || daRes.data?.items || daRes.data?.data || (Array.isArray(daRes.data) ? daRes.data : []);
       // Filter list for CNNT client-side
       if (userRole === 'Role_CoSo' || userRole === '1') {
         const userDonViId = localStorage.getItem('donViId');
         setAllDeAns(daList.filter(d => d.donViThuHuongId === userDonViId || d.donViThiCongId === userDonViId));
       } else {
-        setAllDeAns(daList);
+        // Ẩn Bản nháp (trangThai = 0) đối với các tài khoản không phải là Cơ sở CNNT tạo ra nó
+        setAllDeAns(daList.filter(d => d.trangThai > 0));
       }
     }).catch(err => console.error('Lỗi khi tải dữ liệu dashboard:', err));
   }, [refreshTrigger, userRole]);
@@ -443,11 +432,15 @@ function DashboardPage() {
   const currentYear = new Date().getFullYear();
   const years = [currentYear - 4, currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
   
-  const inProgressCount = allDeAns.filter(x => x.trangThai === 6).length;
-  const totalKinhPhiDuKien = allDeAns.reduce((sum, da) => sum + (da.kinhPhiDuKien || 0), 0);
+  const inProgressCount = dashboardSummary?.inProgressDeAn || allDeAns.filter(x => x.trangThai === 6).length;
+  const totalKinhPhiDuKien = dashboardSummary?.totalKinhPhi || allDeAns.reduce((sum, da) => sum + (da.kinhPhiDuKien || 0), 0);
+  const totalRealDeAn = dashboardSummary?.totalDeAn || allDeAns.length;
+  const totalDN = dashboardSummary?.totalDoanhNghiep || (allDeAns.length > 0 ? allDeAns.length + 12 : 0);
   
-  const lvTopData = linhVucs.slice(0, 6);
-  const lvLabels = lvTopData.map(lv => lv.tenLinhVuc?.length > 20 ? lv.tenLinhVuc.substring(0, 20) + '...' : (lv.tenLinhVuc || 'Khác'));
+  const lvTopData = dashboardCharts.length > 0 ? dashboardCharts : linhVucs.slice(0, 6);
+  const lvLabels = dashboardCharts.length > 0 
+    ? dashboardCharts.map(c => c.label.length > 20 ? c.label.substring(0, 20) + '...' : c.label)
+    : lvTopData.map(lv => lv.tenLinhVuc?.length > 20 ? lv.tenLinhVuc.substring(0, 20) + '...' : (lv.tenLinhVuc || 'Khác'));
 
   const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
   const formatCompactCurrency = (val) => {
@@ -478,17 +471,32 @@ function DashboardPage() {
 
   const pieChartData = {
     labels: lvLabels,
-    datasets: [{ data: lvTopData.map(lv => allDeAns.filter(da => da.linhVucId === lv.id).length), backgroundColor: COLORS.slice(0, lvTopData.length), borderWidth: 0, hoverOffset: 4 }]
+    datasets: [{ 
+      data: dashboardCharts.length > 0 ? dashboardCharts.map(c => c.value) : lvTopData.map(lv => allDeAns.filter(da => da.linhVucId === lv.id).length), 
+      backgroundColor: COLORS.slice(0, lvTopData.length), 
+      borderWidth: 0, 
+      hoverOffset: 4 
+    }]
   };
 
   const barBudgetField = {
     labels: lvLabels,
-    datasets: [{ label: 'Kinh phí (VNĐ)', data: lvTopData.map(lv => allDeAns.filter(da => da.linhVucId === lv.id).reduce((s, da) => s + (da.kinhPhiDuKien || 0), 0)), backgroundColor: '#f59e0b', borderRadius: 4 }]
+    datasets: [{ 
+      label: 'Kinh phí (VNĐ)', 
+      data: dashboardCharts.length > 0 ? dashboardCharts.map(c => c.amount) : lvTopData.map(lv => allDeAns.filter(da => da.linhVucId === lv.id).reduce((s, da) => s + (da.kinhPhiDuKien || 0), 0)), 
+      backgroundColor: '#f59e0b', 
+      borderRadius: 4 
+    }]
   };
 
   const hBarCompanyField = {
     labels: lvLabels,
-    datasets: [{ label: 'Số Đơn vị thụ hưởng', data: lvTopData.map(lv => allDeAns.filter(da => da.linhVucId === lv.id).length), backgroundColor: '#14b8a6', borderRadius: 4 }]
+    datasets: [{ 
+      label: 'Số Đơn vị thụ hưởng', 
+      data: dashboardCharts.length > 0 ? dashboardCharts.map(c => c.value) : lvTopData.map(lv => allDeAns.filter(da => da.linhVucId === lv.id).length), 
+      backgroundColor: '#14b8a6', 
+      borderRadius: 4 
+    }]
   };
 
   const groupedBarData = {
@@ -511,6 +519,11 @@ function DashboardPage() {
     if (!await showConfirm('Bạn có chắc chắn muốn nộp hồ sơ đề án này?')) return;
     try {
       await api.post(`/dean/${selectedItem.id}/nop`);
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
       await showAlert('Nộp hồ sơ thành công!');
       setSelectedItem(null);
       setRefreshTrigger(p => p + 1);
@@ -551,7 +564,7 @@ function DashboardPage() {
       setSelectedItem(null);
       setRefreshTrigger(p => p + 1);
     } catch (err) {
-      alert('Lỗi khi trả lại hồ sơ.');
+      contextShowAlert('Lỗi', 'Lỗi khi trả lại hồ sơ.', 'danger');
     }
   };
 
@@ -589,11 +602,11 @@ function DashboardPage() {
 
       <div className="db-grid-4">
         <div className="stat-card blue">
-          <div className="stat-info"><p className="stat-label">Tổng đề án KC</p><p className="stat-value">{allDeAns.length}</p></div>
+          <div className="stat-info"><p className="stat-label">Tổng đề án KC</p><p className="stat-value">{totalRealDeAn}</p></div>
           <div className="stat-icon blue"><FileText size={24} /></div>
         </div>
         <div className="stat-card green">
-          <div className="stat-info"><p className="stat-label">DN Thụ hưởng</p><p className="stat-value">{allDeAns.length > 0 ? allDeAns.length + 12 : 0}</p></div>
+          <div className="stat-info"><p className="stat-label">DN Thụ hưởng</p><p className="stat-value">{totalDN}</p></div>
           <div className="stat-icon green"><Activity size={24} /></div>
         </div>
         <div className="stat-card yellow">
@@ -606,59 +619,63 @@ function DashboardPage() {
         </div>
       </div>
 
-      <h2 className="section-title"><TrendingUp size={20} color="#0f172a" /> Xu Hướng Theo Thời Gian</h2>
-      <div className="db-grid-2">
-        <div className="db-panel">
-          <h3 className="panel-title">1. Đề án & Doanh nghiệp (2020-{currentYear})</h3>
-          <div className="chart-container">
-            <Line data={trendData1} options={{ maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }} />
+      {!isTTKC && (
+        <>
+          <h2 className="section-title"><TrendingUp size={20} color="#0f172a" /> Xu Hướng Theo Thời Gian</h2>
+          <div className="db-grid-2">
+            <div className="db-panel">
+              <h3 className="panel-title">1. Đề án & Doanh nghiệp (2020-{currentYear})</h3>
+              <div className="chart-container">
+                <Line data={trendData1} options={{ maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }} />
+              </div>
+            </div>
+            <div className="db-panel">
+              <h3 className="panel-title">2. Kinh phí Khuyến công Thực hiện vs Dự kiến</h3>
+              <div className="chart-container">
+                <Line data={trendData2} options={{ maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }} />
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="db-panel">
-          <h3 className="panel-title">2. Kinh phí Khuyến công Thực hiện vs Dự kiến</h3>
-          <div className="chart-container">
-            <Line data={trendData2} options={{ maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }} />
-          </div>
-        </div>
-      </div>
 
-      <h2 className="section-title"><PieChartIcon size={20} color="#0f172a" /> Phân Tích Lĩnh Vực</h2>
-      <div className="db-grid-3">
-        <div className="db-panel">
-          <h3 className="panel-title">3. Tỷ lệ hỗ trợ theo Lĩnh vực</h3>
-          <div className="chart-container chart-container-sm">
-            <Doughnut data={pieChartData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }} />
+          <h2 className="section-title"><PieChartIcon size={20} color="#0f172a" /> Phân Tích Lĩnh Vực</h2>
+          <div className="db-grid-3">
+            <div className="db-panel">
+              <h3 className="panel-title">3. Tỷ lệ hỗ trợ theo Lĩnh vực</h3>
+              <div className="chart-container chart-container-sm">
+                <Doughnut data={pieChartData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }} />
+              </div>
+            </div>
+            <div className="db-panel">
+              <h3 className="panel-title">4. Kinh phí thực hiện (VNĐ)</h3>
+              <div className="chart-container chart-container-sm">
+                <Bar data={barBudgetField} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: (v) => v >= 1000000000 ? v / 1000000000 + ' Tỷ' : v >= 1000000 ? v / 1000000 + ' Tr' : v } } } }} />
+              </div>
+            </div>
+            <div className="db-panel">
+              <h3 className="panel-title">5. Đơn vị thụ hưởng</h3>
+              <div className="chart-container chart-container-sm">
+                <Bar data={hBarCompanyField} options={{ indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="db-panel">
-          <h3 className="panel-title">4. Kinh phí thực hiện (VNĐ)</h3>
-          <div className="chart-container chart-container-sm">
-            <Bar data={barBudgetField} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: (v) => v >= 1000000000 ? v / 1000000000 + ' Tỷ' : v >= 1000000 ? v / 1000000 + ' Tr' : v } } } }} />
-          </div>
-        </div>
-        <div className="db-panel">
-          <h3 className="panel-title">5. Đơn vị thụ hưởng</h3>
-          <div className="chart-container chart-container-sm">
-            <Bar data={hBarCompanyField} options={{ indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
-          </div>
-        </div>
-      </div>
 
-      <h2 className="section-title"><Target size={20} color="#0f172a" /> Hiệu Quả Đề Án</h2>
-      <div className="db-grid-2-custom">
-        <div className="db-panel">
-          <h3 className="panel-title">6. Đề án theo Lĩnh vực (Theo năm)</h3>
-          <div className="chart-container chart-container-sm">
-            <Bar data={groupedBarData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }} />
+          <h2 className="section-title"><Target size={20} color="#0f172a" /> Hiệu Quả Đề Án</h2>
+          <div className="db-grid-2-custom">
+            <div className="db-panel">
+              <h3 className="panel-title">6. Đề án theo Lĩnh vực (Theo năm)</h3>
+              <div className="chart-container chart-container-sm">
+                <Bar data={groupedBarData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }} />
+              </div>
+            </div>
+            <div className="db-panel">
+              <h3 className="panel-title">7. Hiệu quả DA so với Chỉ số KC</h3>
+              <div className="chart-container chart-container-sm">
+                <Radar data={radarData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }} />
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="db-panel">
-          <h3 className="panel-title">7. Hiệu quả DA so với Chỉ số KC</h3>
-          <div className="chart-container chart-container-sm">
-            <Radar data={radarData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }} />
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       <h2 className="section-title"><Map size={20} color="#0f172a" /> Bản Đồ Phân Bổ Địa Phương</h2>
       <div className="db-panel" style={{ marginBottom: '2rem' }}>
@@ -671,20 +688,47 @@ function DashboardPage() {
         <div className="map-wrapper">
           <MapContainer center={[16.047079, 108.206230]} zoom={5} style={{ height: '100%', width: '100%' }}>
             <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
-            {activeMapTab === 1 && (
+            
+            {mapMarkers.filter(m => m.type === activeMapTab).map((m, idx) => (
+              <Marker key={idx} position={[m.lat, m.lng]}>
+                <Popup>
+                  <strong>{m.title}</strong><br/>
+                  {m.subtitle}
+                </Popup>
+              </Marker>
+            ))}
+
+            {/* Dữ liệu thực tế cho Đề án (DN Thụ hưởng) */}
+            {activeMapTab === 1 && allDeAns.filter(d => d.viDo && d.kinhDo).map((d, idx) => {
+              const tt = MAP_ICONS[d.trangThai] || MAP_ICONS[0];
+              return (
+                <Marker key={`da-${d.id}`} position={[d.viDo, d.kinhDo]} icon={tt.icon || icons.grey}>
+                  <Popup>
+                    <div style={{ padding: '4px 0', minWidth: '180px' }}>
+                      <strong style={{ color: tt.color, display: 'block', marginBottom: '4px', fontSize: '13px' }}>{tt.label}</strong>
+                      <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px', color: '#1e293b' }}>{d.tenDeAn}</div>
+                      <div style={{ color: '#475569', fontSize: '12px' }}><strong>Kinh phí:</strong> {formatVND(d.kinhPhiDuKien)}</div>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+            
+            {/* Fallback nếu không có đề án nào có tọa độ (để test) */}
+            {activeMapTab === 1 && allDeAns.filter(d => d.viDo && d.kinhDo).length === 0 && (
               <>
-                <Marker position={[21.028511, 105.804817]}><Popup>Hà Nội<br/>15 Doanh nghiệp</Popup></Marker>
-                <Marker position={[10.823099, 106.629662]}><Popup>TP. Hồ Chí Minh<br/>20 Doanh nghiệp</Popup></Marker>
-                <Marker position={[16.047079, 108.206230]}><Popup>Đà Nẵng<br/>8 Doanh nghiệp</Popup></Marker>
+                <Marker position={[21.028511, 105.804817]} icon={icons.blue}><Popup>Hà Nội<br/>15 Doanh nghiệp</Popup></Marker>
+                <Marker position={[10.823099, 106.629662]} icon={icons.green}><Popup>TP. Hồ Chí Minh<br/>20 Doanh nghiệp</Popup></Marker>
+                <Marker position={[16.047079, 108.206230]} icon={icons.orange}><Popup>Đà Nẵng<br/>8 Doanh nghiệp</Popup></Marker>
               </>
             )}
-            {activeMapTab === 2 && (
+            {mapMarkers.filter(m => m.type === activeMapTab).length === 0 && activeMapTab === 2 && (
               <>
                 <Marker position={[20.8449, 106.6881]}><Popup>Hải Phòng<br/>Hội chợ XTTM Công thương 2024</Popup></Marker>
                 <Marker position={[12.2388, 109.1967]}><Popup>Nha Trang<br/>Triển lãm SP Khuyến công Nam Trung Bộ</Popup></Marker>
               </>
             )}
-            {activeMapTab === 3 && (
+            {mapMarkers.filter(m => m.type === activeMapTab).length === 0 && activeMapTab === 3 && (
               <>
                 <Marker position={[21.5833, 105.8167]}><Popup>Thái Nguyên<br/>Chè Tân Cương (4 Sao OCOP)</Popup></Marker>
                 <Marker position={[10.0452, 105.7469]}><Popup>Cần Thơ<br/>Đồ thủ công Gáo dừa (3 Sao OCOP)</Popup></Marker>
@@ -925,8 +969,6 @@ function DashboardPage() {
         </div>
       )}
 
-      {/* Global Custom Dialog */}
-      <CustomDialog dialog={dialog} setDialog={setDialog} />
     </div>
   );
 }

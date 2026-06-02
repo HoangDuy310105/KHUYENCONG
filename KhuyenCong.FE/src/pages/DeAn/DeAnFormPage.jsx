@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Calendar, Coins, Users, Save, X, FolderOpen } from 'lucide-react';
 import api from '../../services/api';
+import { useDialog } from '../../context/DialogContext';
+import confetti from 'canvas-confetti';
 import './DeAn.css';
 
 function DeAnFormPage() {
+  const { showAlert } = useDialog();
   const navigate = useNavigate();
   const userRole = localStorage.getItem('role');
   const userDonViId = localStorage.getItem('donViId');
@@ -155,35 +158,35 @@ function DeAnFormPage() {
     
     // --- Bổ sung Validation chi tiết ---
     if (!formData.tenDeAn || formData.tenDeAn.trim() === '') {
-      alert('Vui lòng nhập Tên đề án.');
+      showAlert('Lỗi', 'Vui lòng nhập Tên đề án.', 'warning');
       return;
     }
     if (!formData.loaiDeAnId) {
-      alert('Vui lòng chọn Loại đề án.');
+      showAlert('Lỗi', 'Vui lòng chọn Loại đề án.', 'warning');
       return;
     }
     if (!formData.linhVucId) {
-      alert('Vui lòng chọn Lĩnh vực thực hiện.');
+      showAlert('Lỗi', 'Vui lòng chọn Lĩnh vực thực hiện.', 'warning');
       return;
     }
     if (!diaChiState.selectedTinh || !diaChiState.selectedHuyen || !diaChiState.selectedXa) {
-      alert('Vui lòng chọn đầy đủ 3 cấp hành chính cho Địa điểm thực hiện (Tỉnh - Huyện - Xã).');
+      showAlert('Lỗi', 'Vui lòng chọn đầy đủ 3 cấp hành chính cho Địa điểm thực hiện (Tỉnh - Huyện - Xã).', 'warning');
       return;
     }
     if (!formData.donViThuHuongId) {
-      alert('Vui lòng chọn Đơn vị thụ hưởng.');
+      showAlert('Lỗi', 'Vui lòng chọn Đơn vị thụ hưởng.', 'warning');
       return;
     }
     if (formData.kinhPhiDuKien === '' || Number(formData.kinhPhiDuKien) <= 0) {
-      alert('Kinh phí dự kiến phải là số lớn hơn 0.');
+      showAlert('Lỗi', 'Kinh phí dự kiến phải là số lớn hơn 0.', 'warning');
       return;
     }
     if (!formData.thoiGianBatDau || !formData.thoiGianKetThuc) {
-      alert('Vui lòng chọn đầy đủ Thời gian thực hiện (Bắt đầu và Kết thúc).');
+      showAlert('Lỗi', 'Vui lòng chọn đầy đủ Thời gian thực hiện (Bắt đầu và Kết thúc).', 'warning');
       return;
     }
     if (new Date(formData.thoiGianBatDau) > new Date(formData.thoiGianKetThuc)) {
-      alert('Cú pháp sai: Thời gian bắt đầu không được lớn hơn Thời gian kết thúc.');
+      showAlert('Lỗi', 'Cú pháp sai: Thời gian bắt đầu không được lớn hơn Thời gian kết thúc.', 'warning');
       return;
     }
     // -----------------------------------
@@ -225,11 +228,16 @@ function DeAnFormPage() {
       };
 
       await api.post('/dean', payload);
-      alert('Khởi tạo đề án thành công!');
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+      showAlert('Thành công', 'Khởi tạo đề án thành công!', 'success');
       navigate('/de-an');
     } catch (error) {
       console.error('Lỗi khi lưu đề án:', error);
-      alert('Có lỗi xảy ra khi lưu đề án: ' + (error.response?.data?.message || error.message));
+      showAlert('Lỗi', 'Có lỗi xảy ra khi lưu đề án: ' + (error.response?.data?.message || error.message), 'danger');
     } finally {
       setUploading(false);
     }

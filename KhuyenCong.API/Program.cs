@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using StackExchange.Redis;
+using Minio;
+using KhuyenCong.Service.Interfaces;
+using KhuyenCong.Service.Implementations;
 
 // ⚠️ Cho phép Npgsql tự convert DateTime.Kind=Unspecified thành UTC
 // để tránh lỗi "Cannot write DateTime with Kind=Unspecified to PostgreSQL timestamp with time zone"
@@ -59,6 +62,22 @@ builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IDeAnService, KhuyenCon
 builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IGiaiNganService, KhuyenCong.Service.Implementations.GiaiNganService>();
 builder.Services.AddScoped<KhuyenCong.Service.Interfaces.ISanPhamOcopService, KhuyenCong.Service.Implementations.SanPhamOcopService>();
 builder.Services.AddScoped<KhuyenCong.Service.Interfaces.ITienDoThucHienService, KhuyenCong.Service.Implementations.TienDoThucHienService>();
+builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IChiTieuKPIService, KhuyenCong.Service.Implementations.ChiTieuKPIService>();
+builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IDashboardService, KhuyenCong.Service.Implementations.DashboardService>();
+builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IVanBanService, KhuyenCong.Service.Implementations.VanBanService>();
+
+// Configure MinIO Storage
+var minioEndpoint = builder.Configuration["MinioSettings:Endpoint"] ?? "localhost:9000";
+var minioAccessKey = builder.Configuration["MinioSettings:AccessKey"] ?? "minioadmin";
+var minioSecretKey = builder.Configuration["MinioSettings:SecretKey"] ?? "minioadmin123";
+
+builder.Services.AddMinio(configureClient => configureClient
+    .WithEndpoint(minioEndpoint)
+    .WithCredentials(minioAccessKey, minioSecretKey)
+    .WithSSL(false) // Không dùng HTTPS cho môi trường dev
+    .Build());
+
+builder.Services.AddScoped<IFileStorageService, MinioStorageService>();
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

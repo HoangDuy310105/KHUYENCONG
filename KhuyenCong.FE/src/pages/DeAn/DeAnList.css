@@ -736,20 +736,26 @@
 }
 
 .btn-action-primary {
-  background: #10b981;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  box-shadow: none;
 }
 .btn-action-primary:hover {
-  background: #059669;
+  background: #dcfce7;
+  border-color: #86efac;
   transform: translateY(-1px);
 }
 
 .btn-action-danger {
-  background: #ef4444;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  box-shadow: none;
 }
 .btn-action-danger:hover {
-  background: #dc2626;
+  background: #fee2e2;
+  border-color: #fca5a5;
   transform: translateY(-1px);
 }
 
@@ -843,13 +849,17 @@
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  background: #ef4444;
-  border: none;
-  color: white;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+  transition: all 0.2s;
 }
-.btn-reject-confirm:hover { background: #dc2626; }
+.btn-reject-confirm:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+}
 
 /* ══════════════════════════════════════════════════════════════
    STEPPER 11 BƯỚC - THEO NGHIỆP VỤ KHUYẾN CÔNG
@@ -1294,3 +1304,74 @@
 .custom-dialog-btn.btn-red-confirm:hover {
   background-color: #be123c;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   UPLOAD MODAL (KÝ HỢP ĐỒNG / NGHIỆM THU / KPI)
+══════════════════════════════════════════════════════════════ */
+.reject-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  animation: overlayIn 0.2s ease;
+}
+
+.reject-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 560px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.rm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 16px 16px 0 0;
+  gap: 16px;
+}
+
+.rm-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.rm-header button {
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.rm-header button:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.rm-body {
+  padding: 24px;
+  flex: 1;
+}
+

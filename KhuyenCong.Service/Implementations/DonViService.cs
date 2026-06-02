@@ -147,7 +147,9 @@ public class DonViService : IDonViService
     {
         using var workbook = new ClosedXML.Excel.XLWorkbook(stream);
         var worksheet = workbook.Worksheet(1); // Đọc sheet đầu tiên trong file
-        var rows = worksheet.RangeUsed().RowsUsed();
+        var rangeUsed = worksheet.RangeUsed();
+        if (rangeUsed == null) return 0;
+        var rows = rangeUsed.RowsUsed();
 
         var newEntities = new List<DonVi>();
         bool isFirstRow = true;

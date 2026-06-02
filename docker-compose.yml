@@ -51,6 +51,30 @@ services:
       retries: 3
 
   # ---------------------------------------------------------------
+  # SERVICE 2.5: MINIO STORAGE (Lưu trữ File/Ảnh)
+  # ---------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: khuyencong_minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000" # Cổng giao tiếp API
+      - "9001:9001" # Cổng Console quản trị (Giao diện Web)
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - khuyencong_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # ---------------------------------------------------------------
   # SERVICE 3: BACKEND .NET 10 API
   # Chỉ khởi động sau khi Redis đã sẵn sàng
   # ---------------------------------------------------------------
@@ -72,6 +96,7 @@ services:
       - JwtSettings__Audience=KhuyenCongSPA
       - JwtSettings__ExpiryMinutes=60
       - ASPNETCORE_ENVIRONMENT=Production
+      - MinioSettings__Endpoint=minio:9000
     depends_on:
       redis:
         condition: service_healthy
@@ -106,6 +131,8 @@ volumes:
     name: khuyencong_postgres_data
   redis_data:
     name: khuyencong_redis_data
+  minio_data:
+    name: khuyencong_minio_data
 
 # =================================================================
 # NETWORKS — Mạng nội bộ để các container giao tiếp với nhau

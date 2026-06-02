@@ -1,0 +1,223 @@
+.bando-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 64px); /* Trừ đi chiều cao topbar */
+  background-color: #f1f5f9;
+  overflow: hidden;
+}
+
+.bando-map-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.leaflet-container {
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* Floating Panel */
+.bando-floating-panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255,255,255,0.5);
+  padding: 20px;
+  z-index: 1000; /* Hiển thị trên leaflet map (z-index 400) */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title::before {
+  content: '\f279';
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  color: #3b82f6;
+}
+
+.panel-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-box {
+  flex: 1;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.stat-value.highlight {
+  color: #2563eb;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.filter-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s;
+  background: white;
+}
+
+.filter-group select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.legend-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.legend-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.panel-loading {
+  font-size: 12px;
+  color: #3b82f6;
+  text-align: center;
+  padding: 10px;
+  font-weight: 500;
+}
+
+/* Custom Popup */
+.bando-popup .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.bando-popup .leaflet-popup-content {
+  margin: 0;
+  width: 300px !important;
+}
+
+.popup-header {
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.popup-status {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.popup-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.popup-body {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popup-row {
+  font-size: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.popup-row strong {
+  color: #64748b;
+  min-width: 90px;
+  font-weight: 500;
+}
+
+.popup-row span {
+  color: #1e293b;
+  flex: 1;
+}
+
+.text-finance {
+  font-weight: 700 !important;
+  color: #b91c1c !important;
+}
+
+.text-success {
+  font-weight: 700 !important;
+  color: #047857 !important;
+}

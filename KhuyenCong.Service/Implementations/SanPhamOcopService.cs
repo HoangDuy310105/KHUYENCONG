@@ -18,14 +18,25 @@ public class SanPhamOcopService : ISanPhamOcopService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<(IEnumerable<SanPhamOcopDto> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, string? search, string? capChungNhan, int? phanHangSao, int? loaiSanPham, int? trangThai)
+    public async Task<(IEnumerable<SanPhamOcopDto> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, string? search, string? capChungNhan, int? phanHangSao, int? loaiSanPham, string? trangThaiList, Guid? userDonViId = null, string? userRoleClaim = null)
     {
+        bool isCoSo = userRoleClaim == "Role_CoSo" || userRoleClaim == "1";
+        bool isSo = userRoleClaim == "Role_So" || userRoleClaim == "2";
+
+        var trangThais = new List<int>();
+        if (!string.IsNullOrEmpty(trangThaiList))
+        {
+            trangThais = trangThaiList.Split(',').Select(int.Parse).ToList();
+        }
+
         System.Linq.Expressions.Expression<Func<SanPhamOcop, bool>> filter = o => 
             (string.IsNullOrEmpty(search) || o.TenSanPham.ToLower().Contains(search.ToLower()) || (o.DonVi != null && o.DonVi.TenDonVi.ToLower().Contains(search.ToLower())))
             && (string.IsNullOrEmpty(capChungNhan) || capChungNhan == "Tất cả" || o.CapChungNhan == capChungNhan)
             && (!phanHangSao.HasValue || phanHangSao.Value == 0 || o.PhanHangSao == phanHangSao.Value)
             && (!loaiSanPham.HasValue || loaiSanPham.Value == 0 || o.LoaiSanPham == loaiSanPham.Value)
-            && (!trangThai.HasValue || trangThai.Value == 0 || o.TrangThai == trangThai.Value);
+            && (!trangThais.Any() || trangThais.Contains(o.TrangThai))
+            && (!isSo || o.TrangThai >= 1)
+            && (!isCoSo || !userDonViId.HasValue || o.DonViId == userDonViId.Value);
 
         var (items, totalCount) = await _unitOfWork.SanPhamOcops.GetPagedAsync(page, pageSize, filter, includeProperties: "DonVi");
 

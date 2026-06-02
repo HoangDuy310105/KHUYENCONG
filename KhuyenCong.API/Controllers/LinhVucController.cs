@@ -32,7 +32,7 @@ public class LinhVucController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "Role_Admin")]
+    [Authorize(Roles = "Role_Admin,Role_Bo")]
     [HttpPost]
     public async Task<IActionResult> Create(KhuyenCong.Service.DTOs.LinhVucDto linhVucDto)
     {
@@ -40,7 +40,7 @@ public class LinhVucController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
-    [Authorize(Roles = "Role_Admin")]
+    [Authorize(Roles = "Role_Admin,Role_Bo")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(System.Guid id, KhuyenCong.Service.DTOs.LinhVucDto linhVucDto)
     {

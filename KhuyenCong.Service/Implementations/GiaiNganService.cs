@@ -24,14 +24,21 @@ public class GiaiNganService : IGiaiNganService
         _context = context;
     }
 
-    public async Task<IEnumerable<DeAnGiaiNganSummaryDto>> GetDeAnGiaiNganSummaryAsync()
+    public async Task<IEnumerable<DeAnGiaiNganSummaryDto>> GetDeAnGiaiNganSummaryAsync(string? userRole = null, Guid? userDonViId = null)
     {
         // Lấy tất cả đề án có trạng thái >= DaPheDuyet (5) kèm thông tin giải ngân
-        var deAns = await _context.DeAns
+        var query = _context.DeAns
             .Include(d => d.DonViThuHuong)
             .Include(d => d.GiaiNgans)
-            .Where(d => (int)d.TrangThai >= 5)
-            .ToListAsync();
+            .Where(d => (int)d.TrangThai >= 5);
+
+        // Nếu là Role_CoSo thì chỉ lấy đề án của đơn vị mình
+        if ((userRole == "Role_CoSo" || userRole == "1") && userDonViId.HasValue)
+        {
+            query = query.Where(d => d.DonViThuHuongId == userDonViId.Value || d.DonViThiCongId == userDonViId.Value);
+        }
+
+        var deAns = await query.ToListAsync();
 
         return deAns.Select(d => new DeAnGiaiNganSummaryDto
         {

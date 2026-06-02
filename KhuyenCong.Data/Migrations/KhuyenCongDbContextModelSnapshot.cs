@@ -55,8 +55,20 @@ namespace KhuyenCong.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<JsonDocument>("BienBanGiamSat")
+                        .HasColumnType("jsonb");
+
+                    b.Property<JsonDocument>("BienBanNghiemThu")
+                        .HasColumnType("jsonb");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DiaDiem")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("DonViGiamSatId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("DonViThiCongId")
                         .HasColumnType("uuid");
@@ -83,6 +95,9 @@ namespace KhuyenCong.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("NgayNghiemThu")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("NguonKinhPhi")
                         .HasColumnType("integer");
 
@@ -91,6 +106,9 @@ namespace KhuyenCong.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("ThoiGianBatDau")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ThoiGianGiamSat")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("ThoiGianKetThuc")
@@ -103,6 +121,8 @@ namespace KhuyenCong.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DonViGiamSatId");
 
                     b.HasIndex("DonViThiCongId");
 
@@ -126,6 +146,9 @@ namespace KhuyenCong.Data.Migrations
 
                     b.Property<string>("DiaChi")
                         .HasColumnType("text");
+
+                    b.Property<double?>("KinhDo")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("LoaiDonVi")
                         .HasColumnType("integer");
@@ -155,6 +178,9 @@ namespace KhuyenCong.Data.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<double?>("ViDo")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -544,6 +570,9 @@ namespace KhuyenCong.Data.Migrations
                     b.Property<string>("FileDinhKem")
                         .HasColumnType("text");
 
+                    b.Property<int>("LoaiTaiLieu")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("NgayHieuLuc")
                         .HasColumnType("timestamp with time zone");
 
@@ -579,6 +608,11 @@ namespace KhuyenCong.Data.Migrations
 
             modelBuilder.Entity("KhuyenCong.Core.Entities.DeAn", b =>
                 {
+                    b.HasOne("KhuyenCong.Core.Entities.DonVi", "DonViGiamSat")
+                        .WithMany()
+                        .HasForeignKey("DonViGiamSatId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("KhuyenCong.Core.Entities.DonVi", "DonViThiCong")
                         .WithMany("DeAnThiCongs")
                         .HasForeignKey("DonViThiCongId")
@@ -601,6 +635,8 @@ namespace KhuyenCong.Data.Migrations
                         .HasForeignKey("LoaiDeAnId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("DonViGiamSat");
 
                     b.Navigation("DonViThiCong");
 

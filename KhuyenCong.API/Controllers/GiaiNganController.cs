@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace KhuyenCong.API.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/giai-ngan")]
 [ApiController]
 [Authorize]
 public class GiaiNganController : ControllerBase
@@ -25,7 +25,13 @@ public class GiaiNganController : ControllerBase
     [HttpGet("summary")]
     public async Task<IActionResult> GetSummary()
     {
-        var result = await _giaiNganService.GetDeAnGiaiNganSummaryAsync();
+        var userRoleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var donViIdClaim = User.FindFirst("DonViId")?.Value;
+        Guid? userDonViId = null;
+        if (!string.IsNullOrEmpty(donViIdClaim) && Guid.TryParse(donViIdClaim, out var parsed))
+            userDonViId = parsed;
+
+        var result = await _giaiNganService.GetDeAnGiaiNganSummaryAsync(userRoleClaim, userDonViId);
         return Ok(result);
     }
 

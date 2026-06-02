@@ -15,6 +15,8 @@ public class DonVi : BaseEntity
     public string? MaHuyen { get; set; }
     public string? MaXa { get; set; }
     public string? SoDienThoai { get; set; }
+    public double? ViDo { get; set; } // Latitude
+    public double? KinhDo { get; set; } // Longitude
 
     // Navigation Properties
     public virtual ICollection<NguoiDung> NguoiDungs { get; set; } = new List<NguoiDung>();

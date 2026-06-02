@@ -28,18 +28,18 @@ function formatDate(dateStr) {
 
 // ── NGUON KINH PHI MAP ───────────────────────────────────────────────────────
 const NGUON_KP_MAP = {
-  1: { label: 'Trung ương',    color: '#1d4ed8', bg: '#eff6ff' },
-  2: { label: 'Địa phương',   color: '#0369a1', bg: '#f0f9ff' },
-  3: { label: 'Kết hợp',      color: '#6d28d9', bg: '#f5f3ff' },
-  4: { label: 'Khác',         color: '#64748b', bg: '#f1f5f9' },
+  1: { label: 'Trung ương', color: '#1d4ed8', bg: '#eff6ff' },
+  2: { label: 'Địa phương', color: '#0369a1', bg: '#f0f9ff' },
+  3: { label: 'Kết hợp', color: '#6d28d9', bg: '#f5f3ff' },
+  4: { label: 'Khác', color: '#64748b', bg: '#f1f5f9' },
 };
 
 // ── STATUS MAP (đồng bộ với DeAn) ───────────────────────────────────────────
 const TRANG_THAI_MAP = {
-  5: { label: 'Đã Phê Duyệt',  color: '#0369a1', bg: '#f0f9ff' },
+  5: { label: 'Đã Phê Duyệt', color: '#0369a1', bg: '#f0f9ff' },
   6: { label: 'Đang Thực Hiện', color: '#047857', bg: '#ecfdf5' },
-  7: { label: 'Đã Nghiệm Thu',  color: '#6d28d9', bg: '#f5f3ff' },
-  8: { label: 'Đã Quyết Toán',  color: '#374151', bg: '#f9fafb' },
+  7: { label: 'Đã Nghiệm Thu', color: '#6d28d9', bg: '#f5f3ff' },
+  8: { label: 'Đã Quyết Toán', color: '#374151', bg: '#f9fafb' },
 };
 
 // ── CUSTOM DIALOG ────────────────────────────────────────────────────────────
@@ -99,10 +99,23 @@ function GiaiNganModal({ deAn, lichSuGiaiNgan, onClose, onRefresh, showAlert, sh
       await showAlert('Vui lòng nhập số tiền hợp lệ.');
       return;
     }
-    if (+soTien > deAn.kinhPhiDuKien) {
-      await showAlert('Số tiền giải ngân không được vượt quá kinh phí dự kiến của đề án.');
-      return;
+    
+    if (loai === '1') {
+      const newTotal = tongTamUng + (+soTien);
+      if (newTotal > deAn.kinhPhiDuKien) {
+        const remaining = deAn.kinhPhiDuKien - tongTamUng;
+        await showAlert(`Tổng số tiền tạm ứng vượt quá Kinh phí dự kiến! Bạn chỉ còn có thể giải ngân tối đa ${formatVNDFull(remaining)}.`);
+        return;
+      }
+    } else {
+      const newTotal = tongTamUng + (+soTien);
+      if (newTotal > deAn.kinhPhiDuKien) {
+        const remaining = deAn.kinhPhiDuKien - tongTamUng;
+        await showAlert(`Tổng giải ngân vượt mức! Dự án đã tạm ứng ${formatVNDFull(tongTamUng)}, phần Quyết toán đợt cuối chỉ được tối đa ${formatVNDFull(remaining)}.`);
+        return;
+      }
     }
+
     const label = loai === '1' ? 'tạm ứng' : 'quyết toán';
     const ok = await showConfirm(`Xác nhận ghi nhận ${formatVNDFull(+soTien)} cho đợt ${label} đề án "${deAn.tenDeAn}"?`);
     if (!ok) return;
@@ -120,15 +133,19 @@ function GiaiNganModal({ deAn, lichSuGiaiNgan, onClose, onRefresh, showAlert, sh
       setSoTien(''); setGhiChu('');
       onRefresh();
     } catch (err) {
-      await showAlert('Lỗi khi ghi nhận giải ngân: ' + (err.response?.data?.message || err.message));
+      const msg = err.response?.data?.Message || err.response?.data?.message || err.message;
+      await showAlert('Lỗi khi ghi nhận giải ngân: ' + msg);
     } finally {
       setSaving(false);
     }
   };
 
   const nguonKP = NGUON_KP_MAP[deAn.nguonKinhPhi] || NGUON_KP_MAP[2];
+  const daQuyetToan = tongQuyetToan > 0;
+  const tongDaChi = tongTamUng + tongQuyetToan;
+  
   const tyLe = deAn.kinhPhiDuKien > 0
-    ? Math.min(100, Math.round(((tongTamUng + tongQuyetToan) / deAn.kinhPhiDuKien) * 100))
+    ? Math.min(100, Math.round((tongDaChi / deAn.kinhPhiDuKien) * 100))
     : 0;
 
   return (
@@ -170,12 +187,15 @@ function GiaiNganModal({ deAn, lichSuGiaiNgan, onClose, onRefresh, showAlert, sh
           {/* Thanh progress */}
           <div className="gn-progress-wrap">
             <div className="gn-progress-track">
-              <div className="gn-progress-fill-tam" style={{ width: `${Math.min(100, Math.round(tongTamUng / deAn.kinhPhiDuKien * 100))}%` }} />
-              <div className="gn-progress-fill-quyet" style={{ width: `${Math.min(100, Math.round(tongQuyetToan / deAn.kinhPhiDuKien * 100))}%` }} />
+              {daQuyetToan ? (
+                <div className="gn-progress-fill-quyet" style={{ width: `${tyLe}%` }} />
+              ) : (
+                <div className="gn-progress-fill-tam" style={{ width: `${tyLe}%` }} />
+              )}
             </div>
             <div className="gn-progress-legend">
-              <span><span className="dot orange" /> Tạm ứng</span>
-              <span><span className="dot green" /> Quyết toán</span>
+              {!daQuyetToan && <span><span className="dot orange" /> Đang Tạm ứng</span>}
+              {daQuyetToan && <span><span className="dot green" /> Đã Quyết toán</span>}
             </div>
           </div>
 
@@ -204,41 +224,51 @@ function GiaiNganModal({ deAn, lichSuGiaiNgan, onClose, onRefresh, showAlert, sh
             {canEdit && (
               <div className="gn-form">
                 <h4 className="gn-section-title">Ghi nhận đợt mới</h4>
-                <div className="gn-form-group">
-                  <label className="gn-label">Loại giải ngân</label>
-                  <div className="gn-radio-group">
-                    <label className={`gn-radio ${loai === '1' ? 'active' : ''}`}>
-                      <input type="radio" value="1" checked={loai === '1'} onChange={e => setLoai(e.target.value)} />
-                      <Clock size={14} /> Tạm ứng
-                    </label>
-                    <label className={`gn-radio ${loai === '2' ? 'active' : ''}`}>
-                      <input type="radio" value="2" checked={loai === '2'} onChange={e => setLoai(e.target.value)} />
-                      <CheckCircle size={14} /> Quyết toán
-                    </label>
+                {daQuyetToan ? (
+                  <div className="gn-settled-banner" style={{ padding: '16px', backgroundColor: '#f8fafc', border: '1px dashed #94a3b8', borderRadius: '8px', color: '#475569', fontSize: '13px', textAlign: 'center' }}>
+                    🔒 Dự án này đã được chốt Quyết toán. Không thể ghi nhận thêm giao dịch giải ngân mới.
                   </div>
-                </div>
-                <div className="gn-form-group">
-                  <label className="gn-label">Số tiền (VNĐ)</label>
-                  <input
-                    type="number"
-                    className="gn-input"
-                    placeholder="VD: 50000000"
-                    value={soTien}
-                    onChange={e => setSoTien(e.target.value)}
-                    min="0"
-                  />
-                </div>
-                <div className="gn-form-group">
-                  <label className="gn-label">Ngày giải ngân</label>
-                  <input type="date" className="gn-input" value={ngay} onChange={e => setNgay(e.target.value)} />
-                </div>
-                <div className="gn-form-group">
-                  <label className="gn-label">Ghi chú / Chứng từ</label>
-                  <textarea className="gn-input" rows={3} placeholder="Số chứng từ, ghi chú..." value={ghiChu} onChange={e => setGhiChu(e.target.value)} />
-                </div>
-                <button className="gn-btn-submit" onClick={handleSubmit} disabled={saving}>
-                  {saving ? 'Đang lưu...' : <><Plus size={14} /> Ghi nhận giải ngân</>}
-                </button>
+                ) : (
+                  <>
+                    <div className="gn-form-group">
+                      <label className="gn-label">Loại giải ngân</label>
+                      <div className="gn-radio-group">
+                        <label className={`gn-radio ${loai === '1' ? 'active' : ''}`}>
+                          <input type="radio" value="1" checked={loai === '1'} onChange={e => setLoai(e.target.value)} />
+                          <Clock size={14} /> Tạm ứng
+                        </label>
+                        <label className={`gn-radio ${loai === '2' ? 'active' : ''}`}>
+                          <input type="radio" value="2" checked={loai === '2'} onChange={e => setLoai(e.target.value)} />
+                          <CheckCircle size={14} /> Quyết toán
+                        </label>
+                      </div>
+                      {loai === '1' && <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>Ghi chú: Bạn có thể tạm ứng nhiều đợt. Tổng tạm ứng không vượt quá Kinh phí dự kiến.</div>}
+                      {loai === '2' && <div style={{ fontSize: '12px', color: '#ea580c', marginTop: '6px' }}>Lưu ý: Đây là bước chốt Giá trị cuối cùng. Sau khi lưu, bạn sẽ không thể tạm ứng thêm.</div>}
+                    </div>
+                    <div className="gn-form-group">
+                      <label className="gn-label">Số tiền (VNĐ)</label>
+                      <input
+                        type="number"
+                        className="gn-input"
+                        placeholder="VD: 50000000"
+                        value={soTien}
+                        onChange={e => setSoTien(e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                    <div className="gn-form-group">
+                      <label className="gn-label">Ngày giải ngân</label>
+                      <input type="date" className="gn-input" value={ngay} onChange={e => setNgay(e.target.value)} />
+                    </div>
+                    <div className="gn-form-group">
+                      <label className="gn-label">Ghi chú / Chứng từ</label>
+                      <textarea className="gn-input" rows={3} placeholder="Số chứng từ, ghi chú..." value={ghiChu} onChange={e => setGhiChu(e.target.value)} />
+                    </div>
+                    <button className="gn-btn-submit" onClick={handleSubmit} disabled={saving}>
+                      {saving ? 'Đang lưu...' : <><Plus size={14} /> Ghi nhận giải ngân</>}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -292,10 +322,12 @@ export default function GiaiNganPage() {
   );
 
   // KPI tổng hợp
-  const tongKinhPhi = filtered.reduce((s, d) => s + (d.kinhPhiDuKien || 0), 0);
-  const tongTamUng = filtered.reduce((s, d) => s + (d.tongTamUng || 0), 0);
-  const tongQuyetToan = filtered.reduce((s, d) => s + (d.tongQuyetToan || 0), 0);
-  const tyLeGiaiNgan = tongKinhPhi > 0 ? Math.round(((tongTamUng + tongQuyetToan) / tongKinhPhi) * 100) : 0;
+  const tongKinhPhi = filtered.reduce((s, d) => s + Number(d.kinhPhiDuKien || 0), 0);
+  const tongTamUng = filtered.reduce((s, d) => s + Number(d.tongTamUng || 0), 0);
+  const tongQuyetToan = filtered.reduce((s, d) => s + Number(d.tongQuyetToan || 0), 0);
+  
+  const tongDaChiToanBo = filtered.reduce((s, d) => s + Number(d.tongTamUng || 0) + Number(d.tongQuyetToan || 0), 0);
+  const tyLeGiaiNgan = tongKinhPhi > 0 ? Math.round((tongDaChiToanBo / tongKinhPhi) * 100) : 0;
 
   return (
     <div className="gn-page">
@@ -394,6 +426,7 @@ export default function GiaiNganPage() {
                   const tyle = item.kinhPhiDuKien > 0
                     ? Math.min(100, Math.round(((item.tongTamUng + item.tongQuyetToan) / item.kinhPhiDuKien) * 100))
                     : 0;
+                  const barColor = item.tongQuyetToan > 0 ? '#16a34a' : '#ea580c';
                   return (
                     <tr key={item.id} className="gn-row">
                       <td>
@@ -412,7 +445,7 @@ export default function GiaiNganPage() {
                       <td className="td-center">
                         <div className="gn-tyle-wrap">
                           <div className="gn-tyle-bar">
-                            <div className="gn-tyle-fill" style={{ width: `${tyle}%` }} />
+                            <div className="gn-tyle-fill" style={{ width: `${tyle}%`, backgroundColor: barColor }} />
                           </div>
                           <span className="gn-tyle-text">{tyle}%</span>
                         </div>

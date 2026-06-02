@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace KhuyenCong.API.Controllers;
 
-[Authorize(Roles = "Role_Admin")]
+[Authorize(Roles = "Role_Admin,Role_Bo")]
 [Route("api/nguoi-dung")]
 [ApiController]
 public class NguoiDungController : ControllerBase

@@ -40,6 +40,13 @@ public class KhuyenCongDbContext : DbContext
             .HasForeignKey(d => d.DonViThiCongId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // DeAn -> DonVi (Giam Sat)
+        modelBuilder.Entity<DeAn>()
+            .HasOne(d => d.DonViGiamSat)
+            .WithMany() // We don't necessarily need a collection on DonVi for this, or we can just use WithMany()
+            .HasForeignKey(d => d.DonViGiamSatId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // NguoiDung -> DonVi
         modelBuilder.Entity<NguoiDung>()
             .HasOne(n => n.DonVi)
@@ -91,6 +98,14 @@ public class KhuyenCongDbContext : DbContext
         
         modelBuilder.Entity<DeAn>()
             .Property(d => d.HoSoDinhKem)
+            .HasColumnType("jsonb");
+
+        modelBuilder.Entity<DeAn>()
+            .Property(d => d.BienBanGiamSat)
+            .HasColumnType("jsonb");
+
+        modelBuilder.Entity<DeAn>()
+            .Property(d => d.BienBanNghiemThu)
             .HasColumnType("jsonb");
 
         modelBuilder.Entity<GiaiNgan>()

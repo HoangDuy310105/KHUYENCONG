@@ -23,14 +23,22 @@ public class DeAn : BaseEntity
     public Guid LoaiDeAnId { get; set; }
     public TrangThaiDeAn TrangThai { get; set; } = TrangThaiDeAn.BanNhap;
     
+    public string? DiaDiem { get; set; }
+    public Guid? DonViGiamSatId { get; set; }
+    public DateTime? ThoiGianGiamSat { get; set; }
+    public DateTime? NgayNghiemThu { get; set; }
+
     // JSONB in PostgreSQL
     public JsonDocument? HoSoDinhKem { get; set; }
+    public JsonDocument? BienBanGiamSat { get; set; }
+    public JsonDocument? BienBanNghiemThu { get; set; }
 
     // Navigation Properties
     public virtual LoaiDeAn? LoaiDeAn { get; set; }
     public virtual LinhVuc? LinhVuc { get; set; }
     public virtual DonVi? DonViThuHuong { get; set; }
     public virtual DonVi? DonViThiCong { get; set; }
+    public virtual DonVi? DonViGiamSat { get; set; }
     
     public virtual ICollection<GiaiNgan> GiaiNgans { get; set; } = new List<GiaiNgan>();
     public virtual ICollection<TienDoThucHien> TienDoThucHiens { get; set; } = new List<TienDoThucHien>();

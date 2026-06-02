@@ -8,7 +8,7 @@ namespace KhuyenCong.Service.Interfaces;
 public interface IGiaiNganService
 {
     /// <summary>Lấy danh sách tất cả đề án kèm thông tin tóm tắt giải ngân (cho trang Kinh phí)</summary>
-    Task<IEnumerable<DeAnGiaiNganSummaryDto>> GetDeAnGiaiNganSummaryAsync();
+    Task<IEnumerable<DeAnGiaiNganSummaryDto>> GetDeAnGiaiNganSummaryAsync(string? userRole = null, Guid? userDonViId = null);
     
     /// <summary>Lấy lịch sử giải ngân của một đề án cụ thể</summary>
     Task<IEnumerable<GiaiNganDto>> GetByDeAnIdAsync(Guid deAnId);

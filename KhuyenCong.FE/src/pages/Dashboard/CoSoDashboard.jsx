@@ -15,14 +15,17 @@ function CoSoDashboard() {
     // Fetch Đề Án
     api.get('/dean?page=1&pageSize=50').then(res => {
       const allDa = res.data?.Items || res.data?.items || res.data?.data || (Array.isArray(res.data) ? res.data : []);
-      setMyDeAns(allDa.filter(d => d.donViThuHuongId === userDonViId || d.donViThiCongId === userDonViId));
+      setMyDeAns(allDa.filter(d => 
+        (d.donViThuHuongId && userDonViId && d.donViThuHuongId.toLowerCase() === userDonViId.toLowerCase()) || 
+        (d.donViThiCongId && userDonViId && d.donViThiCongId.toLowerCase() === userDonViId.toLowerCase())
+      ));
     }).catch(err => console.error(err));
 
     // Fetch OCOP
     api.get('/SanPhamOcop?page=1&pageSize=50').then(res => {
       const allOcop = res.data?.items || res.data?.data || (Array.isArray(res.data) ? res.data : []);
-      // API có thể chưa lọc theo donViId, ta lọc thêm ở Frontend cho an toàn
-      setMyOcops(allOcop.filter(o => o.donViId === userDonViId));
+      // So sánh không phân biệt hoa thường để tránh lỗi GUID
+      setMyOcops(allOcop.filter(o => o.donViId && userDonViId && o.donViId.toLowerCase() === userDonViId.toLowerCase()));
     }).catch(err => console.error(err));
   }, []);
 
