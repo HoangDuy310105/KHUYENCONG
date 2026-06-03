@@ -40,5 +40,10 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.TrangThai, opt => opt.MapFrom(src => (int)src.TrangThai));
         CreateMap<VanBanDto, VanBanPhapLuat>()
             .ForMember(dest => dest.TrangThai, opt => opt.MapFrom(src => (KhuyenCong.Core.Enums.TrangThaiVanBan)src.TrangThai));
+
+        // TinTuc mapping
+        CreateMap<TinTuc, TinTucDto>();
+        CreateMap<CreateTinTucDto, TinTuc>();
+        CreateMap<UpdateTinTucDto, TinTuc>();
     }
 }

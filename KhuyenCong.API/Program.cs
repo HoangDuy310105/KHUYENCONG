@@ -65,6 +65,8 @@ builder.Services.AddScoped<KhuyenCong.Service.Interfaces.ITienDoThucHienService,
 builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IChiTieuKPIService, KhuyenCong.Service.Implementations.ChiTieuKPIService>();
 builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IDashboardService, KhuyenCong.Service.Implementations.DashboardService>();
 builder.Services.AddScoped<KhuyenCong.Service.Interfaces.IVanBanService, KhuyenCong.Service.Implementations.VanBanService>();
+builder.Services.AddScoped<KhuyenCong.Service.Interfaces.ITinTucService, KhuyenCong.Service.Implementations.TinTucService>();
+builder.Services.AddScoped<KhuyenCong.Service.Interfaces.ILichSuThaoTacService, KhuyenCong.Service.Implementations.LichSuThaoTacService>();
 
 // Configure MinIO Storage
 var minioEndpoint = builder.Configuration["MinioSettings:Endpoint"] ?? "localhost:9000";
@@ -108,6 +110,34 @@ builder.Services.AddAuthentication(options =>
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "KhuyenCong API", Version = "v1" });
+    
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Nhập token JWT của bạn."
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -186,10 +216,13 @@ if (!Directory.Exists(uploadsFolder))
     Directory.CreateDirectory(uploadsFolder);
 }
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Luôn mở Swagger để test API dễ dàng
+app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.MapOpenApi();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "KhuyenCong API V1");
+});
 
 if (!app.Environment.IsProduction())
 {

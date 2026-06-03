@@ -558,6 +558,134 @@ namespace KhuyenCong.Data.Migrations
                     b.ToTable("TienDoThucHiens");
                 });
 
+            modelBuilder.Entity("KhuyenCong.Core.Entities.TinTuc", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Excerpt")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsHot")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Views")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TinTucs");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("c1111111-1111-1111-1111-111111111111"),
+                            Category = "Thông báo",
+                            Content = "",
+                            CreatedAt = new DateTime(2026, 5, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Excerpt = "Cục Công Thương địa phương thông báo tới các Sở Công Thương về việc phê duyệt danh mục các đề án khuyến công điểm và đề án nhóm thuộc Chương trình khuyến công quốc gia.",
+                            IsHot = true,
+                            PublishedAt = new DateTime(2026, 5, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = 1,
+                            Title = "Quyết định phê duyệt danh mục đề án khuyến công quốc gia năm 2026",
+                            Views = 1240
+                        },
+                        new
+                        {
+                            Id = new Guid("c2222222-2222-2222-2222-222222222222"),
+                            Category = "Chính sách",
+                            Content = "",
+                            CreatedAt = new DateTime(2026, 5, 18, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Excerpt = "Nhằm thúc đẩy phát triển kinh tế địa phương, Bộ Công Thương ban hành chính sách hỗ trợ đặc biệt dành cho các doanh nghiệp vừa và nhỏ tham gia chương trình khuyến công.",
+                            IsHot = true,
+                            PublishedAt = new DateTime(2026, 5, 18, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = 1,
+                            Title = "Chính sách hỗ trợ doanh nghiệp nhỏ và vừa trong lĩnh vực công nghiệp nông thôn",
+                            Views = 876
+                        },
+                        new
+                        {
+                            Id = new Guid("c3333333-3333-3333-3333-333333333333"),
+                            Category = "Sự kiện",
+                            Content = "",
+                            CreatedAt = new DateTime(2026, 5, 15, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Excerpt = "Hội nghị sẽ diễn ra tại Hà Nội vào ngày 25/05/2026, tổng kết những thành tích nổi bật và định hướng phát triển cho giai đoạn 2026–2030 của Chương trình Khuyến công.",
+                            IsHot = false,
+                            PublishedAt = new DateTime(2026, 5, 15, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = 1,
+                            Title = "Hội nghị tổng kết Chương trình Khuyến công Quốc gia giai đoạn 2021–2025",
+                            Views = 512
+                        },
+                        new
+                        {
+                            Id = new Guid("c4444444-4444-4444-4444-444444444444"),
+                            Category = "Quyết định",
+                            Content = "",
+                            CreatedAt = new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Excerpt = "Thông tư số 05/2026/TT-BCT quy định chi tiết về quy trình lập dự toán, phân bổ, quản lý và quyết toán kinh phí thực hiện các hoạt động khuyến công quốc gia.",
+                            IsHot = false,
+                            PublishedAt = new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = 1,
+                            Title = "Ban hành Thông tư hướng dẫn quản lý, sử dụng kinh phí khuyến công quốc gia",
+                            Views = 398
+                        },
+                        new
+                        {
+                            Id = new Guid("c5555555-5555-5555-5555-555555555555"),
+                            Category = "Hướng dẫn",
+                            Content = "",
+                            CreatedAt = new DateTime(2026, 5, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Excerpt = "Để tạo thuận lợi cho các tổ chức, cá nhân, Cục Công Thương địa phương hướng dẫn chi tiết quy trình nộp hồ sơ đề án khuyến công trực tuyến qua hệ thống.",
+                            IsHot = false,
+                            PublishedAt = new DateTime(2026, 5, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = 1,
+                            Title = "Hướng dẫn nộp hồ sơ đề án khuyến công trực tuyến trên Cổng thông tin điện tử",
+                            Views = 721
+                        },
+                        new
+                        {
+                            Id = new Guid("c6666666-6666-6666-6666-666666666666"),
+                            Category = "Thông báo",
+                            Content = "",
+                            CreatedAt = new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Excerpt = "Cục Công Thương địa phương thông báo thời gian tiếp nhận hồ sơ đề án khuyến công quốc gia đợt 2 năm 2026 bắt đầu từ ngày 01/06/2026 đến 30/06/2026.",
+                            IsHot = false,
+                            PublishedAt = new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = 1,
+                            Title = "Thông báo lịch tiếp nhận hồ sơ khuyến công quốc gia đợt 2 năm 2026",
+                            Views = 289
+                        });
+                });
+
             modelBuilder.Entity("KhuyenCong.Core.Entities.VanBanPhapLuat", b =>
                 {
                     b.Property<Guid>("Id")
@@ -575,6 +703,9 @@ namespace KhuyenCong.Data.Migrations
 
                     b.Property<DateTime?>("NgayHieuLuc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NguoiKy")
+                        .HasColumnType("text");
 
                     b.Property<string>("SoKyHieu")
                         .IsRequired()

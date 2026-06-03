@@ -312,16 +312,23 @@
 
 .news-item {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 10px;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 10px;
   border-bottom: 1px dotted #ccc;
   transition: var(--transition);
 }
 .news-item:last-child { border-bottom: none; }
 .news-item:hover { background: #fafafa; }
 
-.news-thumb { display: none; }
+.news-thumb {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
 
 .news-info { flex: 1; }
 
@@ -439,38 +446,133 @@
   text-align: center;
 }
 
-/* Hướng dẫn box */
-.guide-box {
-  margin: 0 12px 12px;
-  padding: 16px;
-  background: linear-gradient(135deg, #1a2d56 0%, #1e4080 100%);
-  border-radius: 8px;
-  margin-top: 12px;
+/* Image Banner */
+.guide-banner-link {
+  display: block;
+  margin: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,100,255,0.15);
+  border: 2px solid transparent;
+  animation: heartbeat 1.8s infinite;
 }
-.guide-box h4 {
-  font-size: 14px;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 8px;
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(30,64,128,0.15);
+  }
+  15% {
+    transform: scale(1.06);
+    box-shadow: 0 10px 25px rgba(212,150,10,0.6);
+  }
+  30% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(30,64,128,0.15);
+  }
+  45% {
+    transform: scale(1.06);
+    box-shadow: 0 10px 25px rgba(212,150,10,0.6);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(30,64,128,0.15);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
-.guide-box p {
-  font-size: 12.5px;
-  color: rgba(255,255,255,0.75);
-  line-height: 1.55;
-  margin-bottom: 12px;
+
+.guide-banner-link:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(212,150,10,0.5);
+  animation-play-state: paused;
 }
-.guide-btn {
-  display: inline-block;
-  padding: 7px 16px;
-  background: #d4960a;
-  color: white;
-  font-size: 13px;
-  font-weight: 700;
+
+.guide-banner-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.5s ease;
+}
+.guide-banner-link:hover .guide-banner-img {
+  transform: scale(1.05);
+}
+
+/* ===== Banner Đăng ký ===== */
+.registration-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f1f6fa; /* Light grey-blue background */
   border-radius: 4px;
-  text-decoration: none;
-  transition: var(--transition);
+  margin-top: 24px;
+  padding: 0;
+  min-height: 140px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
 }
-.guide-btn:hover { background: #b57c07; }
+
+.reg-banner-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex: 1;
+  z-index: 2;
+  padding: 24px;
+  text-align: center;
+}
+
+.reg-banner-content h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #0b3b55;
+  margin: 0;
+}
+
+.reg-btn {
+  background: #c2934c; /* Golden brown */
+  color: white;
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 10px 24px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.reg-btn:hover {
+  background: #b0823c;
+  color: white;
+}
+
+.reg-banner-image {
+  flex-shrink: 0;
+  width: 260px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  background: white; /* White block on the right */
+  padding: 15px;
+  border-left: 1px solid #e2e8f0;
+}
+
+.reg-banner-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: normal;
+  opacity: 1;
+}
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1200px) {

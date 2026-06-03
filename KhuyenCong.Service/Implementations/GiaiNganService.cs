@@ -72,7 +72,7 @@ public class GiaiNganService : IGiaiNganService
         }).OrderByDescending(g => g.NgayGiaiNgan).ToList();
     }
 
-    public async Task<GiaiNganDto> CreateAsync(GiaiNganCreateDto dto)
+    public async Task<GiaiNganDto> CreateAsync(GiaiNganCreateDto dto, Guid? userId = null)
     {
         var deAn = await _unitOfWork.DeAns.GetByIdAsync(dto.DeAnId);
         if (deAn == null)
@@ -122,6 +122,24 @@ public class GiaiNganService : IGiaiNganService
         };
 
         await _unitOfWork.GiaiNgans.AddAsync(entity);
+
+        if (userId.HasValue)
+        {
+            var lichSu = new KhuyenCong.Core.Entities.LichSuThaoTac
+            {
+                Id = Guid.NewGuid(),
+                DeAnId = deAn.Id,
+                NguoiDungId = userId.Value,
+                HanhDong = $"Thực hiện giải ngân {((LoaiGiaiNgan)dto.LoaiGiaiNgan)}: {dto.SoTien:N0} VNĐ",
+                TrangThaiCu = deAn.TrangThai,
+                TrangThaiMoi = deAn.TrangThai,
+                LyDo = dto.GhiChu,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _unitOfWork.LichSuThaoTacs.AddAsync(lichSu);
+        }
+
         await _unitOfWork.CompleteAsync();
 
         return new GiaiNganDto

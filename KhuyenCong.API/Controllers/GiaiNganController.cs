@@ -19,6 +19,13 @@ public class GiaiNganController : ControllerBase
         _giaiNganService = giaiNganService;
     }
 
+    private Guid? GetUserId()
+    {
+        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (Guid.TryParse(userIdString, out var userId)) return userId;
+        return null;
+    }
+
     /// <summary>
     /// Lấy danh sách tất cả đề án kèm tóm tắt thông tin giải ngân (cho trang Kinh phí & Quyết toán)
     /// </summary>
@@ -55,7 +62,7 @@ public class GiaiNganController : ControllerBase
         if (!ModelState.IsValid) return BadRequest(ModelState);
         try
         {
-            var result = await _giaiNganService.CreateAsync(dto);
+            var result = await _giaiNganService.CreateAsync(dto, GetUserId());
             return Ok(result);
         }
         catch (Exception ex)

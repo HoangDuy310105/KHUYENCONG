@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ClipboardList, Landmark, Search, BarChart3, ScrollText, Building2,
@@ -33,7 +33,7 @@ const HomePage = () => {
   const STATS = [
     { value: '1,250+', label: 'Đề án đã triển khai', icon: ClipboardList },
     { value: '680+',   label: 'Doanh nghiệp thụ hưởng', icon: Factory },
-    { value: '63',     label: 'Tỉnh thành tham gia', icon: Map },
+    { value: '34',     label: 'Tỉnh thành tham gia', icon: Map },
     { value: '3.2 tỷ', label: 'Kinh phí giải ngân', icon: CircleDollarSign },
   ];
 
@@ -56,12 +56,21 @@ const HomePage = () => {
     { id: 'KCDP-2024-022', name: 'Hỗ trợ liên doanh liên kết, xây dựng vùng nguyên liệu muối', donVi: 'HTX Sản xuất Muối Tiền Giang', linhVuc: 'Chế biến nông lâm sản', kinhPhi: '290 triệu', status: 'Đã phê duyệt', statusColor: 'green' },
   ];
 
-  const TIN_TUCS = [
-    { date: '21/05/2026', title: 'Khai giảng khóa đào tạo quản lý doanh nghiệp cho cơ sở CNNT năm 2026', IconComp: Factory },
-    { date: '18/05/2026', title: 'Thông báo gia hạn thời hạn nộp hồ sơ đề xuất đề án khuyến công quốc gia', IconComp: ClipboardList },
-    { date: '15/05/2026', title: 'Kết quả thẩm định đề án khuyến công địa phương đợt 1 năm 2026', IconComp: CheckCircle2 },
-    { date: '10/05/2026', title: 'Hội nghị tổng kết công tác khuyến công toàn quốc năm 2025', IconComp: Target },
-  ];
+  const [tinTucs, setTinTucs] = useState([]);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const response = await fetch('/api/tin-tuc?page=1&pageSize=4');
+        const resData = await response.json();
+        const items = resData.items || resData.Items || [];
+        setTinTucs(items.slice(0, 4));
+      } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu tin tức:', error);
+      }
+    };
+    fetchNews();
+  }, []);
 
   return (
     <div className="home-page">
@@ -163,18 +172,25 @@ const HomePage = () => {
                 <a href="#" className="view-all-link">Xem tất cả ›</a>
               </div>
               <div className="news-list">
-                {TIN_TUCS.map((t, i) => {
-                  const ImgComp = t.IconComp;
-                  return (
-                    <div key={i} className="news-item">
-                      <div className="news-thumb"><ImgComp size={20} color="#1a2d56"/></div>
-                      <div className="news-info">
-                        <span className="news-date">{t.date}</span>
-                        <a href="#" className="news-title">{t.title}</a>
-                      </div>
+                {tinTucs.length > 0 ? tinTucs.map((t, i) => (
+                  <Link key={t.id || i} to="/tin-tuc" className="news-item" style={{ textDecoration: 'none' }}>
+                    <div className="news-thumb" style={{ width: '130px', height: '85px', padding: 0, overflow: 'hidden', background: '#f1f5f9', borderRadius: '6px' }}>
+                      {t.imageUrl ? (
+                        <img src={t.imageUrl} alt={t.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Newspaper size={24} color="#94a3b8" />
+                      )}
                     </div>
-                  );
-                })}
+                    <div className="news-info">
+                      <span className="news-date">{new Date(t.publishedAt || new Date()).toLocaleDateString('vi-VN')}</span>
+                      <span className="news-title" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {t.title}
+                      </span>
+                    </div>
+                  </Link>
+                )) : (
+                  <p style={{fontSize: '13px', color: '#64748b'}}>Đang tải tin tức...</p>
+                )}
               </div>
             </div>
 
@@ -206,15 +222,22 @@ const HomePage = () => {
               <div className="content-block-header">
                 <h3>Chương trình đào tạo</h3>
               </div>
-              <div className="guide-box" style={{background: 'linear-gradient(135deg, #e0f2fe 0%, #bbdefb 100%)', padding: '20px', borderRadius: '8px', border: 'none'}}>
-                <h4 style={{fontSize: '18px', color: '#0b3b55', marginBottom: '10px'}}>Khai giảng các khóa đào tạo</h4>
-                <p style={{color: '#0b3b55', fontWeight:'bold', fontSize:'16px'}}>Hệ thống Quản lý Khuyến công</p>
-                <div style={{marginTop: '20px'}}>
-                  <Link to="/huong-dan" style={{background: '#c8965a', color: 'white', padding: '8px 16px', borderRadius: '20px', textDecoration: 'none', fontWeight: 'bold'}}>ĐĂNG KÝ NGAY</Link>
-                </div>
-              </div>
+              <Link to="/huong-dan" className="guide-banner-link">
+                <img src="/images/banner-khuyen-cong.png" alt="Khuyến công Đào tạo" className="guide-banner-img" />
+              </Link>
             </div>
 
+          </div>
+
+          {/* Banner Đăng ký */}
+          <div className="registration-banner">
+            <div className="reg-banner-content">
+              <h3>Bạn chưa đăng ký trên Hệ thống?</h3>
+              <Link to="/register" className="reg-btn">Đăng ký tại đây</Link>
+            </div>
+            <div className="reg-banner-image">
+              <img src="/images/registration-illustration.png" alt="Registration Illustration" />
+            </div>
           </div>
         </div>
       </section>

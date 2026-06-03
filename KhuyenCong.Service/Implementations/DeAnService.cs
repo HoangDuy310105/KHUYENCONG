@@ -176,10 +176,11 @@ public class DeAnService : IDeAnService
         return await _unitOfWork.CompleteAsync() > 0;
     }
 
-    public async Task<bool> UpdateStatusAsync(Guid id, int trangThaiMoi, string? ghiChu)
+    public async Task<bool> UpdateStatusAsync(Guid id, int trangThaiMoi, string? ghiChu, Guid? userId = null)
     {
         var entity = await _unitOfWork.DeAns.GetByIdAsync(id);
         if (entity == null) return false;
+        var trangThaiCu = entity.TrangThai;
 
         entity.TrangThai = (KhuyenCong.Core.Enums.TrangThaiDeAn)trangThaiMoi;
 
@@ -198,7 +199,23 @@ public class DeAnService : IDeAnService
             }
         }
 
-        // TODO: Lưu vết Audit Log với Ghi chú
+        // Lưu vết Audit Log với Ghi chú
+        if (userId.HasValue && trangThaiCu != entity.TrangThai)
+        {
+            var lichSu = new KhuyenCong.Core.Entities.LichSuThaoTac
+            {
+                Id = Guid.NewGuid(),
+                DeAnId = entity.Id,
+                NguoiDungId = userId.Value,
+                HanhDong = $"Chuyển trạng thái từ {trangThaiCu} sang {entity.TrangThai}",
+                TrangThaiCu = trangThaiCu,
+                TrangThaiMoi = entity.TrangThai,
+                LyDo = ghiChu,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _unitOfWork.LichSuThaoTacs.AddAsync(lichSu);
+        }
 
         _unitOfWork.DeAns.Update(entity);
         await _unitOfWork.CompleteAsync();

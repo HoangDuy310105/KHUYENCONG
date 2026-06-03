@@ -189,9 +189,9 @@ function LoginPage() {
 
       {/* 2. NỀN DẠNG VIDEO (Hoạt động khi useVideoBg = true) */}
       {useVideoBg && (
-        <video className="login-bg-video" autoPlay loop muted playsInline poster="https://i.pinimg.com/736x/08/f1/3c/08f13c008eda9fd26bb08fa3e7ba58bc.jpg">
+        <video className="login-bg-video" autoPlay loop muted playsInline>
           <source 
-            src="https://ak.picdn.net/shutterstock/videos/3795116773/preview/preview.mp4" 
+            src="/videos/login-bg-new2.mp4" 
             type="video/mp4" 
           />
         </video>

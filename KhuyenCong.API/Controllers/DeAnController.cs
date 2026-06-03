@@ -19,6 +19,13 @@ public class DeAnController : ControllerBase
         _deAnService = deAnService;
     }
 
+    private Guid? GetUserId()
+    {
+        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (Guid.TryParse(userIdString, out var userId)) return userId;
+        return null;
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] Guid? linhVucId = null, [FromQuery] int? trangThai = null)
     {
@@ -90,7 +97,7 @@ public class DeAnController : ControllerBase
     public async Task<IActionResult> NopHoSo(Guid id)
     {
         // Trạng thái 1 = Chờ Sở duyệt
-        var updated = await _deAnService.UpdateStatusAsync(id, 1, "Nộp hồ sơ");
+        var updated = await _deAnService.UpdateStatusAsync(id, 1, "Nộp hồ sơ", GetUserId());
         if (!updated) return NotFound();
         return Ok(new { Message = "Đã nộp hồ sơ thành công" });
     }
@@ -126,7 +133,7 @@ public class DeAnController : ControllerBase
         
         try
         {
-            var updated = await _deAnService.UpdateStatusAsync(id, nextState, "Đã duyệt hồ sơ");
+            var updated = await _deAnService.UpdateStatusAsync(id, nextState, "Đã duyệt hồ sơ", GetUserId());
             if (!updated) return NotFound();
             return Ok(new { Message = "Đã duyệt hồ sơ thành công" });
         }
@@ -150,7 +157,7 @@ public class DeAnController : ControllerBase
         }
 
         // Trạng thái 3 = Yêu cầu bổ sung
-        var updated = await _deAnService.UpdateStatusAsync(id, 3, ghiChu);
+        var updated = await _deAnService.UpdateStatusAsync(id, 3, ghiChu, GetUserId());
         if (!updated) return NotFound();
         return Ok(new { Message = "Đã trả lại hồ sơ yêu cầu bổ sung" });
     }
@@ -163,7 +170,7 @@ public class DeAnController : ControllerBase
             return BadRequest(new { Message = "Bắt buộc phải nhập lý do từ chối." });
 
         // Trạng thái 4 = Bị từ chối
-        var updated = await _deAnService.UpdateStatusAsync(id, 4, lyDo);
+        var updated = await _deAnService.UpdateStatusAsync(id, 4, lyDo, GetUserId());
         if (!updated) return NotFound();
         return Ok(new { Message = "Đã từ chối hồ sơ." });
     }
@@ -178,7 +185,7 @@ public class DeAnController : ControllerBase
         try
         {
             // Trạng thái 7 = Đã nghiệm thu
-            var updated = await _deAnService.UpdateStatusAsync(id, 7, "Đã nghiệm thu. File đính kèm: " + fileUrl);
+            var updated = await _deAnService.UpdateStatusAsync(id, 7, "Đã nghiệm thu. File đính kèm: " + fileUrl, GetUserId());
             if (!updated) return NotFound();
             return Ok(new { Message = "Đã nghiệm thu đề án thành công." });
         }
@@ -196,7 +203,7 @@ public class DeAnController : ControllerBase
             return BadRequest(new { Message = "Bắt buộc phải đính kèm file Hợp đồng." });
 
         // Trạng thái 6 = Đang thực hiện (sau khi ký hợp đồng)
-        var updated = await _deAnService.UpdateStatusAsync(id, 6, "Đã ký hợp đồng. File đính kèm: " + fileUrl);
+        var updated = await _deAnService.UpdateStatusAsync(id, 6, "Đã ký hợp đồng. File đính kèm: " + fileUrl, GetUserId());
         if (!updated) return NotFound();
         return Ok(new { Message = "Đã ký hợp đồng đề án thành công." });
     }

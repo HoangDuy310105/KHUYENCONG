@@ -19,6 +19,7 @@ public class KhuyenCongDbContext : DbContext
     public DbSet<SanPhamOcop> SanPhamOcops => Set<SanPhamOcop>();
     public DbSet<LichSuThaoTac> LichSuThaoTacs => Set<LichSuThaoTac>();
     public DbSet<VanBanPhapLuat> VanBanPhapLuats => Set<VanBanPhapLuat>();
+    public DbSet<TinTuc> TinTucs => Set<TinTuc>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -28,6 +28,7 @@ function VanBanPage() {
     trichYeu: '',
     ngayHieuLuc: '',
     trangThai: 1,
+    nguoiKy: '',
     fileDinhKem: null,
     loaiTaiLieu: 1
   });
@@ -65,6 +66,7 @@ function VanBanPage() {
         trichYeu: item.trichYeu,
         ngayHieuLuc: item.ngayHieuLuc ? item.ngayHieuLuc.substring(0, 10) : '',
         trangThai: item.trangThai,
+        nguoiKy: item.nguoiKy || '',
         fileDinhKem: null, // Khởi tạo fileDinhKem là null để chọn file mới nếu cần
         loaiTaiLieu: item.loaiTaiLieu
       });
@@ -75,6 +77,7 @@ function VanBanPage() {
         trichYeu: '',
         ngayHieuLuc: '',
         trangThai: 1,
+        nguoiKy: '',
         fileDinhKem: null,
         loaiTaiLieu: activeTab
       });
@@ -118,6 +121,7 @@ function VanBanPage() {
       const payload = {
         soKyHieu: formData.soKyHieu,
         trichYeu: formData.trichYeu,
+        nguoiKy: formData.nguoiKy,
         ngayHieuLuc: formData.ngayHieuLuc || null,
         trangThai: Number(formData.trangThai),
         loaiTaiLieu: formData.loaiTaiLieu,
@@ -318,15 +322,26 @@ function VanBanPage() {
             </div>
             
             <form onSubmit={handleSubmit} className="modal-body">
-              <div className="form-group">
-                <label><Hash size={14} className="inline mr-1" />Số / Ký hiệu (*)</label>
-                <input 
-                  type="text" 
-                  value={formData.soKyHieu} 
-                  onChange={(e) => setFormData({...formData, soKyHieu: e.target.value})} 
-                  required 
-                  placeholder="Ví dụ: 28/2018/TT-BTC"
-                />
+              <div className="form-row">
+                <div className="form-group half">
+                  <label><Hash size={14} className="inline mr-1" />Số / Ký hiệu (*)</label>
+                  <input 
+                    type="text" 
+                    value={formData.soKyHieu} 
+                    onChange={(e) => setFormData({...formData, soKyHieu: e.target.value})} 
+                    required 
+                    placeholder="Ví dụ: 28/2018/TT-BTC"
+                  />
+                </div>
+                <div className="form-group half">
+                  <label><Edit size={14} className="inline mr-1" />Người ký</label>
+                  <input 
+                    type="text" 
+                    value={formData.nguoiKy} 
+                    onChange={(e) => setFormData({...formData, nguoiKy: e.target.value})} 
+                    placeholder="Ví dụ: Trần Quốc Phương"
+                  />
+                </div>
               </div>
               
               <div className="form-group">
@@ -363,11 +378,11 @@ function VanBanPage() {
               </div>
               
               <div className="form-group">
-                <label><Download size={14} className="inline mr-1" />File đính kèm (PDF, DOCX)</label>
+                <label><Download size={14} className="inline mr-1" />File đính kèm (PDF, DOCX, RAR, ZIP)</label>
                 <input 
                   type="file" 
                   onChange={handleFileChange} 
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf,.doc,.docx,.rar,.zip"
                   className="file-input"
                 />
                 {!formData.fileDinhKem && formData.id && (

@@ -381,6 +381,8 @@ function DeAnListPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [linhVucs, setLinhVucs] = useState([]);
   const [linhVucFilter, setLinhVucFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [selectedItem, setSelectedItem] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [rejecting, setRejecting] = useState(false);
@@ -414,7 +416,7 @@ function DeAnListPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/dean?page=1&pageSize=100');
+      const res = await api.get('/dean?page=1&pageSize=1000');
       const raw = res.data;
       const list = raw?.Items || raw?.items || raw?.data || (Array.isArray(raw) ? raw : []);
 
@@ -448,6 +450,12 @@ function DeAnListPage() {
     const matchLv = !linhVucFilter || item.linhVucId === linhVucFilter;
     return matchSearch && matchStatus && matchLv;
   });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const safePage = Math.max(1, Math.min(currentPage, totalPages));
+  const indexOfLastItem = safePage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
 
   const handleImportExcel = async (e) => {
     const file = e.target.files[0];
@@ -805,14 +813,14 @@ function DeAnListPage() {
               type="text"
               placeholder="Tìm tên, mã đề án..."
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
               className="filter-search-input"
             />
           </div>
           <select
             className="filter-select"
             value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
+            onChange={e => { setStatusFilter(e.target.value); setCurrentPage(1); }}
           >
             <option value="">Tất cả trạng thái</option>
             {Object.entries(STATUS_MAP).map(([k, v]) => (
@@ -822,7 +830,7 @@ function DeAnListPage() {
           <select
             className="filter-select"
             value={linhVucFilter}
-            onChange={e => setLinhVucFilter(e.target.value)}
+            onChange={e => { setLinhVucFilter(e.target.value); setCurrentPage(1); }}
           >
             <option value="">Tất cả lĩnh vực</option>
             {linhVucs.map(lv => (
@@ -859,7 +867,7 @@ function DeAnListPage() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map(item => (
+                  currentItems.map(item => (
                     <tr
                       key={item.id}
                       className="deal-row"
@@ -901,6 +909,52 @@ function DeAnListPage() {
                 )}
               </tbody>
             </table>
+          )}
+
+          {/* Phân trang */}
+          {!loading && totalPages > 1 && (
+            <div className="pagination-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid #e2e8f0', backgroundColor: '#fff', borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px' }}>
+              <span style={{ fontSize: '13px', color: '#64748b' }}>
+                Hiển thị {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filtered.length)} trên {filtered.length} đề án
+              </span>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button 
+                  disabled={safePage === 1} 
+                  onClick={() => setCurrentPage(p => p - 1)}
+                  style={{ padding: '6px 12px', border: '1px solid #e2e8f0', backgroundColor: safePage === 1 ? '#f8fafc' : '#fff', color: safePage === 1 ? '#94a3b8' : '#334155', borderRadius: '4px', cursor: safePage === 1 ? 'not-allowed' : 'pointer' }}
+                >
+                  Trang trước
+                </button>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
+                    if (totalPages > 7) {
+                      if (pageNum !== 1 && pageNum !== totalPages && Math.abs(pageNum - safePage) > 1) {
+                        if (pageNum === safePage - 2 || pageNum === safePage + 2) {
+                          return <span key={pageNum} style={{ padding: '6px', color: '#94a3b8' }}>...</span>;
+                        }
+                        return null;
+                      }
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        style={{ padding: '6px 12px', border: '1px solid #e2e8f0', backgroundColor: safePage === pageNum ? '#2563eb' : '#fff', color: safePage === pageNum ? '#fff' : '#334155', borderRadius: '4px', cursor: 'pointer', fontWeight: safePage === pageNum ? 600 : 400 }}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button 
+                  disabled={safePage === totalPages} 
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  style={{ padding: '6px 12px', border: '1px solid #e2e8f0', backgroundColor: safePage === totalPages ? '#f8fafc' : '#fff', color: safePage === totalPages ? '#94a3b8' : '#334155', borderRadius: '4px', cursor: safePage === totalPages ? 'not-allowed' : 'pointer' }}
+                >
+                  Trang sau
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

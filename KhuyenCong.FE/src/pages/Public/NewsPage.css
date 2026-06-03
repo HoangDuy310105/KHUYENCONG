@@ -4,35 +4,17 @@
 
 /* ── HERO BANNER ── */
 .news-hero {
-  background: linear-gradient(135deg, #0f1e42 0%, #1a2d56 55%, #0f1e42 100%);
-  border-bottom: 3px solid #d4960a;
+  background-color: #0b3b55;
+  background-image: 
+    linear-gradient(rgba(11, 59, 85, 0.88), rgba(11, 59, 85, 0.88)), 
+    url('/images/oriental_clouds.png');
+  background-size: 400px;
+  background-position: center;
+  background-repeat: repeat;
+  border-bottom: 3px solid #ba7a35;
   padding: 64px 0 56px;
   position: relative;
   overflow: hidden;
-}
-
-/* Họa tiết nền trang trí */
-.news-hero::before {
-  content: '';
-  position: absolute;
-  top: -60px;
-  right: -60px;
-  width: 360px;
-  height: 360px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(212,150,10,0.12) 0%, transparent 70%);
-  pointer-events: none;
-}
-.news-hero::after {
-  content: '';
-  position: absolute;
-  bottom: -40px;
-  left: 10%;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(212,150,10,0.08) 0%, transparent 70%);
-  pointer-events: none;
 }
 
 .news-hero-inner {

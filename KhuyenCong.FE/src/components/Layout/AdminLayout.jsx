@@ -67,7 +67,8 @@ const NAV_BY_ROLE = {
       section: 'Cơ sở dữ liệu', items: [
         { label: 'Doanh nghiệp', icon: 'fa-shop', path: '/don-vi' },
         { label: 'Sản phẩm OCOP', icon: 'fa-award', path: '/ocop' },
-        { label: 'Văn bản & Hội nghị', icon: 'fa-book-bookmark', path: '/van-ban' }
+        { label: 'Văn bản & Hội nghị', icon: 'fa-book-bookmark', path: '/van-ban' },
+        { label: 'Tin tức & Thông báo', icon: 'fa-newspaper', path: '/quan-ly-tin-tuc' }
       ]
     },
     {
@@ -78,6 +79,7 @@ const NAV_BY_ROLE = {
     {
       section: 'Cấu hình System', items: [
         { label: 'Quản lý Người dùng', icon: 'fa-users', path: '/nguoi-dung' },
+        { label: 'Nhật ký hệ thống', icon: 'fa-history', path: '/nhat-ky' },
         { label: 'Lĩnh vực & Loại ĐA', icon: 'fa-layer-group', path: '/linh-vuc' },
       ]
     },
@@ -100,7 +102,8 @@ const NAV_BY_ROLE = {
       section: 'Cơ sở dữ liệu', items: [
         { label: 'Doanh nghiệp', icon: 'fa-shop', path: '/don-vi' },
         { label: 'Sản phẩm OCOP', icon: 'fa-award', path: '/ocop' },
-        { label: 'Văn bản & Hội nghị', icon: 'fa-book-bookmark', path: '/van-ban' }
+        { label: 'Văn bản & Hội nghị', icon: 'fa-book-bookmark', path: '/van-ban' },
+        { label: 'Tin tức & Thông báo', icon: 'fa-newspaper', path: '/quan-ly-tin-tuc' }
       ]
     },
     {
@@ -111,6 +114,7 @@ const NAV_BY_ROLE = {
     {
       section: 'Cấu hình System', items: [
         { label: 'Quản lý Người dùng', icon: 'fa-users', path: '/nguoi-dung' },
+        { label: 'Nhật ký hệ thống', icon: 'fa-history', path: '/nhat-ky' },
         { label: 'Lĩnh vực & Loại ĐA', icon: 'fa-layer-group', path: '/linh-vuc' },
       ]
     },

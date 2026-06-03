@@ -11,5 +11,6 @@ public class VanBanDto
     public int TrangThai { get; set; } // 1: ConHieuLuc, 2: HetHieuLuc
     public string? FileDinhKem { get; set; }
     public int LoaiTaiLieu { get; set; } = 1; // 1: Văn bản, 2: Hội nghị
+    public string? NguoiKy { get; set; }
     public DateTime CreatedAt { get; set; }
 }

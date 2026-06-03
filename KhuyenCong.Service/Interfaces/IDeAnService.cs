@@ -13,6 +13,6 @@ public interface IDeAnService
     Task<DeAnDto> CreateAsync(DeAnDto deAnDto);
     Task<bool> UpdateAsync(Guid id, DeAnDto deAnDto);
     Task<bool> DeleteAsync(Guid id);
-    Task<bool> UpdateStatusAsync(Guid id, int trangThaiMoi, string? ghiChu);
+    Task<bool> UpdateStatusAsync(Guid id, int trangThaiMoi, string? ghiChu, Guid? userId = null);
     Task<bool> QuyetToanAsync(Guid id, Guid userId);
 }

@@ -49,7 +49,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   z-index: 1;
   pointer-events: none;
   opacity: 1;
@@ -91,10 +91,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
   width: 100%;
-  max-width: 460px;
-  padding: 20px;
+  max-width: 440px;
+  padding: 16px;
   z-index: 10;
 }
 
@@ -104,13 +104,13 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 0;
 }
 
 .logo-emblem {
-  width: 72px;
-  height: 72px;
+  width: 54px;
+  height: 54px;
   background: #ffffff;
   border-radius: 50%;
   padding: 2px;
@@ -173,8 +173,8 @@
   -webkit-backdrop-filter: blur(25px);
   border: 1.5px solid rgba(212, 150, 10, 0.35);
   /* Viền vàng đồng rõ nét hơn */
-  border-radius: 16px;
-  padding: 40px 32px;
+  border-radius: 12px;
+  padding: 20px 24px;
   box-shadow:
     0 24px 70px rgba(0, 0, 0, 0.6),
     inset 0 1px 1px rgba(255, 255, 255, 0.15);
@@ -184,21 +184,23 @@
 
 .login-header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
 }
 
 .login-header h1 {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: #ffffff;
   letter-spacing: 0.5px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: 4px;
 }
 
 .login-subtitle {
-  font-size: 13.5px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.8) !important; /* Làm sáng phụ đề */
-  margin-top: 6px;
+  margin-top: 2px;
+  margin-bottom: 0;
 }
 
 /* 7. Form & Inputs */
@@ -208,15 +210,15 @@
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .login-card .form-group label {
   display: block;
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #ffffff !important; /* Ép chữ label thành màu trắng */
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
@@ -266,9 +268,9 @@
   background: rgba(13, 27, 56, 0.65) !important; /* Nền input tối màu */
   border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
   border-radius: 8px;
-  padding: 12px 14px 12px 42px !important; /* Khoảng cách lề trái thụt vào */
+  padding: 10px 14px 10px 42px !important; /* Khoảng cách lề trái thụt vào */
   color: #ffffff !important;
-  font-size: 15px;
+  font-size: 14.5px;
   outline: none;
   transition: all 0.25s ease;
   box-sizing: border-box;
@@ -326,7 +328,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .checkbox-label {
@@ -360,11 +362,11 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
-  padding: 12px 16px;
+  padding: 8px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .recaptcha-checkbox {
@@ -404,7 +406,7 @@
 /* 10. Nút Đăng nhập Chính */
 .btn-primary {
   width: 100%;
-  padding: 13px;
+  padding: 11px;
   background: linear-gradient(135deg, var(--gold) 0%, #b8820a 100%);
   border: none;
   border-radius: 8px;
@@ -415,7 +417,7 @@
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 15px rgba(212, 150, 10, 0.25);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -438,7 +440,7 @@
 /* Nút VNeID Đỏ cờ vàng đặc trưng */
 .btn-secondary {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   background: rgba(225, 29, 72, 0.1);
   border: 1px solid rgba(225, 29, 72, 0.45);
   border-radius: 8px;
@@ -469,8 +471,8 @@
   align-items: center;
   justify-content: center;
   font-size: 12.5px;
-  margin-bottom: 18px;
-  padding: 10px 14px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
   border-radius: 8px;
   font-weight: 500;
 }

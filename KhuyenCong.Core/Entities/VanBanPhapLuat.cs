@@ -13,4 +13,5 @@ public class VanBanPhapLuat : BaseEntity
     
     // 1: Văn bản pháp luật, 2: Hội nghị xúc tiến TM
     public int LoaiTaiLieu { get; set; } = 1; 
+    public string? NguoiKy { get; set; }
 }

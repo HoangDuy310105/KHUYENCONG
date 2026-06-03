@@ -9,6 +9,7 @@ import DashboardPage from './pages/Dashboard/DashboardPage';
 import HomePage from './pages/Public/HomePage';
 import NewsPage from './pages/Public/NewsPage';
 import GuidePage from './pages/Public/GuidePage';
+import TraCuuPage from './pages/Public/TraCuuPage';
 
 // Import các trang Master Data
 import LinhVucPage from './pages/LinhVuc/LinhVucPage';
@@ -20,9 +21,11 @@ import OcopPage from './pages/Ocop/OcopPage';
 import BanDoPage from './pages/BanDo/BanDoPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import VanBanPage from './pages/VanBan/VanBanPage';
+import TinTucAdminPage from './pages/TinTuc/TinTucAdminPage';
 import KpiPage from './pages/Kpi/KpiPage';
 import NguoiDungPage from './pages/NguoiDung/NguoiDungPage';
 import QuyetToanPage from './pages/QuyetToan/QuyetToanPage';
+import NhatKyHeThongPage from './pages/NhatKy/NhatKyHeThongPage';
 
 /* Bộ bảo vệ Route: Nếu chưa có Token thì tự động chuyển về trang đăng nhập */
 function PrivateRoute({ children }) {
@@ -87,6 +90,7 @@ function App() {
               ============================================ */}
           <Route path="/" element={<PublicLayout />}>
             <Route index element={<HomePage />} />
+            <Route path="tra-cuu" element={<TraCuuPage />} />
             <Route path="tin-tuc" element={<NewsPage />} />
             <Route path="huong-dan" element={<GuidePage />} />
             <Route path="de-an-cong-khai" element={<ComingSoon icon="📋" label="Đề án công khai" />} />
@@ -128,10 +132,11 @@ function App() {
             <Route path="loai-de-an" element={<ComingSoon icon="🗂️" label="Loại Đề án" />} />
             <Route path="ocop" element={<OcopPage />} />
             <Route path="van-ban" element={<VanBanPage />} />
+            <Route path="quan-ly-tin-tuc" element={<TinTucAdminPage />} />
 
             {/* Hệ thống */}
             <Route path="nguoi-dung" element={<NguoiDungPage />} />
-            <Route path="nhat-ky" element={<ComingSoon icon="📜" label="Nhật ký hệ thống" />} />
+            <Route path="nhat-ky" element={<NhatKyHeThongPage />} />
             <Route path="tai-khoan" element={<Navigate to="/profile" replace />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>

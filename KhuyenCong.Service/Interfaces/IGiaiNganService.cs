@@ -14,7 +14,7 @@ public interface IGiaiNganService
     Task<IEnumerable<GiaiNganDto>> GetByDeAnIdAsync(Guid deAnId);
     
     /// <summary>Tạo mới một đợt giải ngân (Tạm ứng hoặc Quyết toán)</summary>
-    Task<GiaiNganDto> CreateAsync(GiaiNganCreateDto dto);
+    Task<GiaiNganDto> CreateAsync(GiaiNganCreateDto dto, Guid? userId = null);
     
     /// <summary>Xóa một đợt giải ngân (Admin only)</summary>
     Task<bool> DeleteAsync(Guid id);
