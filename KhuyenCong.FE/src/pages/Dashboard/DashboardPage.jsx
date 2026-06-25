@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { 
   FileText, CheckCircle, Clock, Map, 
-  PieChart as PieChartIcon, DollarSign, Activity, 
-  BarChart3, TrendingUp, Target,
-  Wrench, ChevronDown, Eye, XCircle, X, HelpCircle, Info, FolderOpen
+  PieChart as PieChartIcon, DollarSign, Activity, TrendingUp, Target,
+  Wrench, ChevronDown, Eye, XCircle, X, FolderOpen
 } from 'lucide-react';
 import { 
   Chart as ChartJS, CategoryScale, LinearScale, BarElement, 
@@ -682,7 +681,7 @@ function DashboardPage() {
         <h3 className="panel-title">8. Bản đồ GIS Phân bổ (3 lớp)</h3>
         <div className="map-tabs">
           <button className={`map-tab ${activeMapTab === 1 ? 'active' : ''}`} onClick={() => setActiveMapTab(1)}>DN Thụ hưởng</button>
-          <button className={`map-tab ${activeMapTab === 2 ? 'active' : ''}`} onClick={() => setActiveMapTab(2)}>Hội nghị XTTM</button>
+          <button className={`map-tab ${activeMapTab === 2 ? 'active' : ''}`} onClick={() => setActiveMapTab(2)}>Đề án Khuyến công</button>
           <button className={`map-tab ${activeMapTab === 3 ? 'active' : ''}`} onClick={() => setActiveMapTab(3)}>Sản phẩm OCOP</button>
         </div>
         <div className="map-wrapper">
@@ -698,24 +697,8 @@ function DashboardPage() {
               </Marker>
             ))}
 
-            {/* Dữ liệu thực tế cho Đề án (DN Thụ hưởng) */}
-            {activeMapTab === 1 && allDeAns.filter(d => d.viDo && d.kinhDo).map((d, idx) => {
-              const tt = MAP_ICONS[d.trangThai] || MAP_ICONS[0];
-              return (
-                <Marker key={`da-${d.id}`} position={[d.viDo, d.kinhDo]} icon={tt.icon || icons.grey}>
-                  <Popup>
-                    <div style={{ padding: '4px 0', minWidth: '180px' }}>
-                      <strong style={{ color: tt.color, display: 'block', marginBottom: '4px', fontSize: '13px' }}>{tt.label}</strong>
-                      <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px', color: '#1e293b' }}>{d.tenDeAn}</div>
-                      <div style={{ color: '#475569', fontSize: '12px' }}><strong>Kinh phí:</strong> {formatVND(d.kinhPhiDuKien)}</div>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
-            
-            {/* Fallback nếu không có đề án nào có tọa độ (để test) */}
-            {activeMapTab === 1 && allDeAns.filter(d => d.viDo && d.kinhDo).length === 0 && (
+            {/* Fallback nếu không có dữ liệu nào (để test UI) */}
+            {mapMarkers.filter(m => m.type === activeMapTab).length === 0 && activeMapTab === 1 && (
               <>
                 <Marker position={[21.028511, 105.804817]} icon={icons.blue}><Popup>Hà Nội<br/>15 Doanh nghiệp</Popup></Marker>
                 <Marker position={[10.823099, 106.629662]} icon={icons.green}><Popup>TP. Hồ Chí Minh<br/>20 Doanh nghiệp</Popup></Marker>

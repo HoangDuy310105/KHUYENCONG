@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Layers, Plus, Edit2, Inbox } from 'lucide-react';
 import api from '../../services/api';
 import { useDialog } from '../../context/DialogContext';

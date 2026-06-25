@@ -41,11 +41,10 @@ public class AuthService : IAuthService
             return new LoginResponseDto { Success = false, Message = "Tài khoản của bạn đang chờ Ban quản trị phê duyệt trong vòng 24h. Vui lòng quay lại sau." };
         }
 
-        // 2. Kiểm tra mật khẩu (Hiện tại DB đang lưu plain text "admin@123" do SeedData)
-        // Lưu ý: Sau này chuyển sang BCrypt thì dùng BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash)
-        bool isPasswordValid = (user.PasswordHash == request.Password);
+        // 2. Kiểm tra mật khẩu bằng BCrypt
+        bool isPasswordValid = false;
         
-        if (!isPasswordValid && request.Password != null && user.PasswordHash != null && user.PasswordHash.StartsWith("$2"))
+        if (!string.IsNullOrEmpty(request.Password) && !string.IsNullOrEmpty(user.PasswordHash))
         {
             try 
             {
@@ -57,8 +56,7 @@ public class AuthService : IAuthService
             }
         }
         
-        // Hỗ trợ tạm thời mật khẩu "admin@123" lúc seed
-        if (request.Password != "admin@123" && !isPasswordValid)
+        if (!isPasswordValid)
         {
             return new LoginResponseDto { Success = false, Message = "Mật khẩu không chính xác." };
         }
@@ -119,6 +117,7 @@ public class AuthService : IAuthService
         }
 
         // 3. Tạo Đơn vị mới
+        var rand = new Random();
         var donVi = new KhuyenCong.Core.Entities.DonVi
         {
             Id = Guid.NewGuid(),
@@ -127,9 +126,28 @@ public class AuthService : IAuthService
             DiaChi = request.DiaChi,
             LoaiDonVi = (KhuyenCong.Core.Enums.LoaiDonVi)request.LoaiDonVi,
             QuyMo = "DNNVV",
+            ViDo = request.ViDo,
+            KinhDo = request.KinhDo,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+
+        // Nếu Frontend không lấy được tọa độ, Backend sẽ tự gọi Geocoding với cơ chế Fallback
+        if (donVi.ViDo == null || donVi.KinhDo == null)
+        {
+            var coords = await KhuyenCong.Service.Helpers.GeocodingHelper.GetCoordinatesAsync(donVi.DiaChi);
+            if (coords.lat != null && coords.lon != null)
+            {
+                donVi.ViDo = coords.lat;
+                donVi.KinhDo = coords.lon;
+            }
+            else
+            {
+                // Fallback nếu API sập: Random Bến Tre
+                donVi.ViDo = 10.1 + (rand.NextDouble() * 0.3);
+                donVi.KinhDo = 106.2 + (rand.NextDouble() * 0.4);
+            }
+        }
         await _unitOfWork.DonVis.AddAsync(donVi);
 
         // 4. Tạo Người dùng mới (mã hóa mật khẩu bằng BCrypt)

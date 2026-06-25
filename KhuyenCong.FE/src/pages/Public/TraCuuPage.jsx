@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import api from '../../services/api';
 import './TraCuuPage.css';
 

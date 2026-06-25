@@ -22,15 +22,19 @@ builder.Services.AddDbContext<KhuyenCong.Data.Context.KhuyenCongDbContext>(optio
     options.UseNpgsql(connectionString)
            .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
-// Configure CORS for Frontend
+// Configure CORS for Frontend (L02 FIX)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
+    options.AddPolicy("AllowSpecificOrigins",
         policy =>
         {
-            policy.AllowAnyOrigin()
+            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() 
+                ?? new[] { "http://localhost:5173", "http://localhost:3000" };
+            
+            policy.WithOrigins(allowedOrigins)
                   .AllowAnyMethod()
-                  .AllowAnyHeader();
+                  .AllowAnyHeader()
+                  .AllowCredentials(); // Hỗ trợ credential/cookies nếu cần
         });
 });
 
@@ -160,6 +164,24 @@ using (var scope = app.Services.CreateScope())
         dbContext.SaveChanges();
     }
 
+    // C05 FIX: Seed 9 lĩnh vực cơ bản theo NĐ 45/2012
+    if (!dbContext.LinhVucs.Any())
+    {
+        dbContext.LinhVucs.AddRange(new List<KhuyenCong.Core.Entities.LinhVuc>
+        {
+            new KhuyenCong.Core.Entities.LinhVuc { Id = Guid.NewGuid(), MaLinhVuc = "LV01", TenLinhVuc = "Đào tạo nghề, truyền nghề" },
+            new KhuyenCong.Core.Entities.LinhVuc { Id = Guid.NewGuid(), MaLinhVuc = "LV02", TenLinhVuc = "Nâng cao năng lực quản lý doanh nghiệp" },
+            new KhuyenCong.Core.Entities.LinhVuc { Id = Guid.NewGuid(), MaLinhVuc = "LV03", TenLinhVuc = "Xây dựng mô hình trình diễn kỹ thuật" },
+            new KhuyenCong.Core.Entities.LinhVuc { Id = Guid.NewGuid(), MaLinhVuc = "LV04", TenLinhVuc = "Phát triển sản phẩm CNNT tiêu biểu" },
+            new KhuyenCong.Core.Entities.LinhVuc { Id = Guid.NewGuid(), MaLinhVuc = "LV05", TenLinhVuc = "Tư vấn trợ giúp cơ sở CNNT" },
+            new KhuyenCong.Core.Entities.LinhVuc { Id = Guid.NewGuid(), MaLinhVuc = "LV06", TenLinhVuc = "Cung cấp thông tin chính sách" },
+            new KhuyenCong.Core.Entities.LinhVuc { Id = Guid.NewGuid(), MaLinhVuc = "LV07", TenLinhVuc = "Hỗ trợ liên doanh liên kết, phát triển cụm CN" },
+            new KhuyenCong.Core.Entities.LinhVuc { Id = Guid.NewGuid(), MaLinhVuc = "LV08", TenLinhVuc = "Hợp tác quốc tế về khuyến công" },
+            new KhuyenCong.Core.Entities.LinhVuc { Id = Guid.NewGuid(), MaLinhVuc = "LV09", TenLinhVuc = "Nâng cao năng lực quản lý khuyến công" }
+        });
+        dbContext.SaveChanges();
+    }
+
     if (dbContext.DonVis.Count() <= 1)
     {
         dbContext.DonVis.AddRange(new List<KhuyenCong.Core.Entities.DonVi>
@@ -232,7 +254,7 @@ if (!app.Environment.IsProduction())
 app.UseStaticFiles(); // Phục vụ file tĩnh (upload tài liệu, ảnh)
 
 
-app.UseCors("AllowAll");
+app.UseCors("AllowSpecificOrigins");
 
 app.UseAuthentication(); // Bắt buộc phải đứng trước UseAuthorization
 app.UseAuthorization();

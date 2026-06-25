@@ -74,6 +74,10 @@ public class GiaiNganService : IGiaiNganService
 
     public async Task<GiaiNganDto> CreateAsync(GiaiNganCreateDto dto, Guid? userId = null)
     {
+        // BUG-08 FIX: Sử dụng Database Transaction với mức độ cô lập Serializable 
+        // để khóa luồng chống lỗi Race Condition khi giải ngân liên tục
+        using var transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+
         var deAn = await _unitOfWork.DeAns.GetByIdAsync(dto.DeAnId);
         if (deAn == null)
             throw new Exception("Không tìm thấy đề án.");
@@ -89,10 +93,23 @@ public class GiaiNganService : IGiaiNganService
             if ((int)deAn.TrangThai < (int)TrangThaiDeAn.DaPheDuyet)
                 throw new Exception("Chỉ có thể tạm ứng cho đề án đã được phê duyệt.");
 
-            // BR-F01: Trần Tạm ứng theo Thông tư 28: Tạm ứng không được vượt quá 70% Kinh phí dự kiến
-            var maxTamUng = deAn.KinhPhiDuKien * 0.7m;
+            // BUG-06 / BR-F01: Quy tắc TRẦN TẠM ỨNG 70% theo Thông tư 28/2018/TT-BTC
+            // Nguồn pháp lý: Thông tư 28/2018/TT-BTC (Bộ Tài Chính) hướng dẫn lập, quản lý,
+            // sử dụng kinh phí khuyến công. Quy định tổng tạm ứng (tất cả các đợt) không được
+            // vượt quá 70% Tổng kinh phí dự kiến được duyệt.
+            // Lưu ý: Thông tư 64/2024/TT-BTC sửa đổi một số điều của TT28. Nếu có thay đổi
+            // về tỷ lệ 70% này, cần cập nhật lại constant bên dưới cho phù hợp.
+            const decimal TRAN_TAM_UNG = 0.7m; // 70% theo TT28/2018/TT-BTC
+            var maxTamUng = deAn.KinhPhiDuKien * TRAN_TAM_UNG;
             if (tongTamUng + dto.SoTien > maxTamUng)
-                throw new Exception($"Số tiền tạm ứng vượt quá hạn mức 70% (Tối đa: {maxTamUng:N0} VNĐ).");
+            {
+                var conLai = maxTamUng - tongTamUng;
+                throw new Exception(
+                    $"Số tiền tạm ứng vượt hạn mức. Theo TT28/2018/TT-BTC, " +
+                    $"tổng tạm ứng tối đa là 70% kinh phí dự kiến " +
+                    $"({maxTamUng:N0} đ). Đã tạm ứng: {tongTamUng:N0} đ. " +
+                    $"Còn có thể tạm ứng: {conLai:N0} đ.");
+            }
         }
         else if (dto.LoaiGiaiNgan == (int)LoaiGiaiNgan.QuyetToan)
         {
@@ -141,6 +158,15 @@ public class GiaiNganService : IGiaiNganService
         }
 
         await _unitOfWork.CompleteAsync();
+
+        // BUG-05 FIX: Cập nhật KinhPhiThucHien = tổng tất cả giải ngân của đề án
+        var allGiaiNgans = await _unitOfWork.GiaiNgans.FindAsync(g => g.DeAnId == dto.DeAnId);
+        deAn.KinhPhiThucHien = allGiaiNgans.Sum(g => g.SoTien);
+        deAn.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.DeAns.Update(deAn);
+        await _unitOfWork.CompleteAsync();
+
+        await transaction.CommitAsync(); // Xác nhận Transaction
 
         return new GiaiNganDto
         {

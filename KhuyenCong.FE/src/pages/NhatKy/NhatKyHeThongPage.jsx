@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { History, RefreshCw, Inbox } from 'lucide-react';
 import './NhatKy.css';

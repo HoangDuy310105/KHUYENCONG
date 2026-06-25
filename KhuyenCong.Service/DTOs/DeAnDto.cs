@@ -31,6 +31,7 @@ public class DeAnDto
     public JsonDocument? BienBanNghiemThu { get; set; }
 
     // Thông tin mở rộng (tùy chọn)
+    public string? TenLoaiDeAn { get; set; }
     public string? TenLinhVuc { get; set; }
     public string? TenDonViThuHuong { get; set; }
     public string? DiaChi { get; set; }

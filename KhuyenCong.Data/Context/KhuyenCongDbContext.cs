@@ -20,6 +20,7 @@ public class KhuyenCongDbContext : DbContext
     public DbSet<LichSuThaoTac> LichSuThaoTacs => Set<LichSuThaoTac>();
     public DbSet<VanBanPhapLuat> VanBanPhapLuats => Set<VanBanPhapLuat>();
     public DbSet<TinTuc> TinTucs => Set<TinTuc>();
+    public DbSet<Notification> Notifications => Set<Notification>(); // C04 FIX
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

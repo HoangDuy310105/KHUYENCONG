@@ -12,6 +12,7 @@ public class MappingProfile : Profile
         CreateMap<DonVi, DonViDto>();
         CreateMap<LinhVuc, LinhVucDto>();
         CreateMap<DeAn, DeAnDto>()
+            .ForMember(dest => dest.TenLoaiDeAn, opt => opt.MapFrom(src => src.LoaiDeAn != null ? src.LoaiDeAn.TenLoai : null))
             .ForMember(dest => dest.TenLinhVuc, opt => opt.MapFrom(src => src.LinhVuc != null ? src.LinhVuc.TenLinhVuc : null))
             .ForMember(dest => dest.TenDonViThuHuong, opt => opt.MapFrom(src => src.DonViThuHuong != null ? src.DonViThuHuong.TenDonVi : null))
             .ForMember(dest => dest.DiaChi, opt => opt.MapFrom(src => src.DonViThuHuong != null ? src.DonViThuHuong.DiaChi : null))

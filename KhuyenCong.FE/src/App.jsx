@@ -33,6 +33,20 @@ function PrivateRoute({ children }) {
   return token ? children : <Navigate to="/login" replace />;
 }
 
+/* Bộ bảo vệ Route theo phân quyền (Role) */
+function RoleRoute({ children, allowedRoles }) {
+  const currentRole = localStorage.getItem('role') || '4'; // Fallback admin
+  if (!allowedRoles.includes(currentRole)) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <h2 style={{ color: '#dc2626', fontSize: '24px', fontWeight: 'bold' }}>403 - Forbidden</h2>
+        <p style={{ marginTop: '10px' }}>Bạn không có quyền truy cập vào chức năng này.</p>
+      </div>
+    );
+  }
+  return children;
+}
+
 /* Trang placeholder khi chức năng chưa hoàn thiện */
 const ComingSoon = ({ icon, label }) => (
   <div style={{
@@ -114,29 +128,31 @@ function App() {
             }
           >
             {/* Trang tổng quan — Hiển thị khác nhau theo Role */}
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
 
             {/* Trang nghiệp vụ — Sẽ hoàn thiện từng bước */}
             <Route path="de-an" element={<DeAnListPage />} />
             <Route path="de-an/tao-moi" element={<DeAnFormPage />} />
+            <Route path="de-an/sua/:id" element={<DeAnFormPage />} />
             <Route path="giai-ngan" element={<GiaiNganPage />} />
             <Route path="bao-cao" element={<ComingSoon icon="📈" label="Báo cáo & KPI" />} />
-            <Route path="quyet-toan" element={<QuyetToanPage />} />
-            <Route path="kpi" element={<KpiPage />} />
+            <Route path="quyet-toan" element={<RoleRoute allowedRoles={['3', '4']}><QuyetToanPage /></RoleRoute>} />
+            <Route path="kpi" element={<RoleRoute allowedRoles={['3', '4']}><KpiPage /></RoleRoute>} />
             {/* Bản đồ GIS */}
-            <Route path="ban-do" element={<BanDoPage />} />
+            <Route path="ban-do" element={<RoleRoute allowedRoles={['3', '4']}><BanDoPage /></RoleRoute>} />
 
             {/* Danh mục */}
-            <Route path="don-vi" element={<DonViPage />} />
-            <Route path="linh-vuc" element={<LinhVucPage />} />
+            <Route path="don-vi" element={<RoleRoute allowedRoles={['2', '3', '4', '5']}><DonViPage /></RoleRoute>} />
+            <Route path="linh-vuc" element={<RoleRoute allowedRoles={['3', '4']}><LinhVucPage /></RoleRoute>} />
             <Route path="loai-de-an" element={<ComingSoon icon="🗂️" label="Loại Đề án" />} />
             <Route path="ocop" element={<OcopPage />} />
-            <Route path="van-ban" element={<VanBanPage />} />
-            <Route path="quan-ly-tin-tuc" element={<TinTucAdminPage />} />
+            <Route path="van-ban" element={<RoleRoute allowedRoles={['3', '4', '5']}><VanBanPage /></RoleRoute>} />
+            <Route path="quan-ly-tin-tuc" element={<RoleRoute allowedRoles={['3', '4']}><TinTucAdminPage /></RoleRoute>} />
 
             {/* Hệ thống */}
-            <Route path="nguoi-dung" element={<NguoiDungPage />} />
-            <Route path="nhat-ky" element={<NhatKyHeThongPage />} />
+            <Route path="nguoi-dung" element={<RoleRoute allowedRoles={['3', '4']}><NguoiDungPage /></RoleRoute>} />
+            <Route path="nhat-ky" element={<RoleRoute allowedRoles={['3', '4']}><NhatKyHeThongPage /></RoleRoute>} />
             <Route path="tai-khoan" element={<Navigate to="/profile" replace />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>

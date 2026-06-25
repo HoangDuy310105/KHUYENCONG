@@ -17,6 +17,7 @@ public interface IUnitOfWork : IDisposable
     IRepository<SanPhamOcop> SanPhamOcops { get; }
     IRepository<VanBanPhapLuat> VanBanPhapLuats { get; }
     IRepository<TinTuc> TinTucs { get; }
+    IRepository<Notification> Notifications { get; } // C04 FIX
 
     Task<int> CompleteAsync();
 }

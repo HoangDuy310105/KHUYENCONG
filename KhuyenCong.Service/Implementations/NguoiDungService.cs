@@ -22,35 +22,29 @@ public class NguoiDungService : INguoiDungService
 
     public async Task<IEnumerable<NguoiDungDto>> GetAllAsync()
     {
-        var entities = await _unitOfWork.NguoiDungs.GetAllAsync();
+        // BUG-03 FIX: Trước đây dùng vòng lặp gọi DB từng Don Vi (N+1 query).
+        // Nay dùng includeProperties để EF Core JOIN 1 lần duy nhất.
+        var entities = await _unitOfWork.NguoiDungs.GetAllAsync(includeProperties: "DonVi");
         var dtos = _mapper.Map<IEnumerable<NguoiDungDto>>(entities);
-        foreach (var dto in dtos)
+
+        // Gán TenDonVi từ navigation property đã được load sẵn
+        foreach (var (dto, entity) in dtos.Zip(entities, (d, e) => (d, e)))
         {
-            if (dto.DonViId.HasValue)
-            {
-                var donVi = await _unitOfWork.DonVis.GetByIdAsync(dto.DonViId.Value);
-                if (donVi != null)
-                {
-                    dto.TenDonVi = donVi.TenDonVi;
-                }
-            }
+            dto.TenDonVi = entity.DonVi?.TenDonVi;
         }
+
         return dtos;
     }
 
     public async Task<NguoiDungDto?> GetByIdAsync(Guid id)
     {
-        var entity = await _unitOfWork.NguoiDungs.GetByIdAsync(id);
+        // Dung FindAsync voi includeProperties de tranh query them
+        var entities = await _unitOfWork.NguoiDungs.FindAsync(x => x.Id == id, includeProperties: "DonVi");
+        var entity = entities.FirstOrDefault();
         if (entity == null) return null;
+
         var dto = _mapper.Map<NguoiDungDto>(entity);
-        if (dto.DonViId.HasValue)
-        {
-            var donVi = await _unitOfWork.DonVis.GetByIdAsync(dto.DonViId.Value);
-            if (donVi != null)
-            {
-                dto.TenDonVi = donVi.TenDonVi;
-            }
-        }
+        dto.TenDonVi = entity.DonVi?.TenDonVi;
         return dto;
     }
 

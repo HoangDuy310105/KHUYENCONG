@@ -24,6 +24,7 @@ public class UnitOfWork : IUnitOfWork
         SanPhamOcops = new Repository<SanPhamOcop>(_context);
         VanBanPhapLuats = new Repository<VanBanPhapLuat>(_context);
         TinTucs = new Repository<TinTuc>(_context);
+        Notifications = new Repository<Notification>(_context); // C04 FIX
     }
 
     public IRepository<DeAn> DeAns { get; private set; }
@@ -37,6 +38,7 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<SanPhamOcop> SanPhamOcops { get; private set; }
     public IRepository<VanBanPhapLuat> VanBanPhapLuats { get; private set; }
     public IRepository<TinTuc> TinTucs { get; private set; }
+    public IRepository<Notification> Notifications { get; private set; } // C04 FIX
 
     public async Task<int> CompleteAsync()
     {

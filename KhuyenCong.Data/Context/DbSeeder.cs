@@ -41,7 +41,7 @@ public static class DbSeeder
         {
             Id = Guid.Parse("b1111111-1111-1111-1111-111111111111"),
             Username = "admin",
-            PasswordHash = "admin@123", // Lưu ý: Sau này sẽ dùng BCrypt để mã hóa
+            PasswordHash = "$2a$11$PlXjHmRvDP47AePRB6F2Uu.cfUqOXiiS5k7Qotxt/apiK4ST2BJ52", // "admin@123" được mã hóa bằng BCrypt
             Role = RoleType.Role_Admin,
             DonViId = donViAdminId,
             IsActive = true,
@@ -63,7 +63,7 @@ public static class DbSeeder
         {
             Id = Guid.Parse("b2222222-2222-2222-2222-222222222222"),
             Username = "canboso",
-            PasswordHash = "so@123", 
+            PasswordHash = "$2a$11$MXxcVGaKDj9GsoWlWkIAzOM1a/OIEyR9DvhX3Jd20fCPofvFZl75u", // "so@123" được mã hóa bằng BCrypt
             Role = RoleType.Role_So,
             DonViId = donViSoId,
             IsActive = true,

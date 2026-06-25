@@ -29,6 +29,7 @@ function VanBanPage() {
     ngayHieuLuc: '',
     trangThai: 1,
     nguoiKy: '',
+    coQuanBanHanh: '',
     fileDinhKem: null,
     loaiTaiLieu: 1
   });
@@ -67,6 +68,7 @@ function VanBanPage() {
         ngayHieuLuc: item.ngayHieuLuc ? item.ngayHieuLuc.substring(0, 10) : '',
         trangThai: item.trangThai,
         nguoiKy: item.nguoiKy || '',
+        coQuanBanHanh: item.coQuanBanHanh || '',
         fileDinhKem: null, // Khởi tạo fileDinhKem là null để chọn file mới nếu cần
         loaiTaiLieu: item.loaiTaiLieu
       });
@@ -78,6 +80,7 @@ function VanBanPage() {
         ngayHieuLuc: '',
         trangThai: 1,
         nguoiKy: '',
+        coQuanBanHanh: '',
         fileDinhKem: null,
         loaiTaiLieu: activeTab
       });
@@ -106,9 +109,7 @@ function VanBanPage() {
       if (formData.fileDinhKem instanceof File) {
         const fileData = new FormData();
         fileData.append('file', formData.fileDinhKem);
-        const uploadRes = await api.post('/file/upload', fileData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const uploadRes = await api.post('/file/upload', fileData);
         
         // Cần đảm bảo endpoint /file/upload trả về đúng đường dẫn
         // Tuỳ theo định dạng của uploadRes, ta lấy path tương ứng.
@@ -122,6 +123,7 @@ function VanBanPage() {
         soKyHieu: formData.soKyHieu,
         trichYeu: formData.trichYeu,
         nguoiKy: formData.nguoiKy,
+        coQuanBanHanh: formData.coQuanBanHanh,
         ngayHieuLuc: formData.ngayHieuLuc || null,
         trangThai: Number(formData.trangThai),
         loaiTaiLieu: formData.loaiTaiLieu,
@@ -223,9 +225,10 @@ function VanBanPage() {
             <thead>
               <tr>
                 <th width="5%">STT</th>
-                <th width="20%">Số / Ký hiệu</th>
-                <th width="40%">Trích yếu nội dung</th>
-                <th width="15%">Ngày hiệu lực</th>
+                <th width="15%">Số / Ký hiệu</th>
+                <th width="35%">Trích yếu nội dung</th>
+                <th width="15%">Cơ quan ban hành</th>
+                <th width="10%">Ngày hiệu lực</th>
                 <th width="10%">Trạng thái</th>
                 <th width="10%">Thao tác</th>
               </tr>
@@ -247,6 +250,7 @@ function VanBanPage() {
                     <td className="text-center">{(page - 1) * pageSize + index + 1}</td>
                     <td className="font-semibold text-navy">{item.soKyHieu}</td>
                     <td>{item.trichYeu}</td>
+                    <td>{item.coQuanBanHanh || '—'}</td>
                     <td className="text-center">
                       {item.ngayHieuLuc ? new Date(item.ngayHieuLuc).toLocaleDateString('vi-VN') : '—'}
                     </td>
@@ -333,6 +337,18 @@ function VanBanPage() {
                     placeholder="Ví dụ: 28/2018/TT-BTC"
                   />
                 </div>
+                <div className="form-group half">
+                  <label><Edit size={14} className="inline mr-1" />Cơ quan ban hành</label>
+                  <input 
+                    type="text" 
+                    value={formData.coQuanBanHanh} 
+                    onChange={(e) => setFormData({...formData, coQuanBanHanh: e.target.value})} 
+                    placeholder="Ví dụ: Bộ Công Thương"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
                 <div className="form-group half">
                   <label><Edit size={14} className="inline mr-1" />Người ký</label>
                   <input 

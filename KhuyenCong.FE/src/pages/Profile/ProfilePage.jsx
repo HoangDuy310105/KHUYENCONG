@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Lock, Eye, EyeOff, CheckCircle, AlertCircle, Building2, ShieldCheck, Mail } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, Lock, Eye, EyeOff, CheckCircle, AlertCircle, Building2, ShieldCheck } from 'lucide-react';
 import api from '../../services/api';
 import './ProfilePage.css';
 

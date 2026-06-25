@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import './DonViPage.css';
 import { Plus, Search, Edit3, Trash2, X, MapPin, Building2, CheckCircle2, AlertCircle, Layers, Briefcase, Phone, Factory, ShieldCheck, AlertTriangle } from 'lucide-react';
@@ -148,14 +148,14 @@ function DonViPage() {
         const resTinh = await fetch(`https://provinces.open-api.vn/api/p/${item.maTinh}?depth=2`);
         const dataTinh = await resTinh.json();
         setDistricts(dataTinh.districts || []);
-      } catch (e) {}
+      } catch (e) { console.error('Lỗi tải Tỉnh:', e); }
     }
     if (item.maHuyen) {
       try {
         const resHuyen = await fetch(`https://provinces.open-api.vn/api/d/${item.maHuyen}?depth=2`);
         const dataHuyen = await resHuyen.json();
         setWards(dataHuyen.wards || []);
-      } catch (e) {}
+      } catch (e) { console.error('Lỗi tải Huyện:', e); }
     }
   };
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Download, Edit2, Trash2, Award, Star, Building2, Calendar, CheckCircle, XCircle, X, UploadCloud, Package, Clock } from 'lucide-react';
+import { Search, Plus, Download, Edit2, Trash2, Award, Star, Building2, CheckCircle, XCircle, X, UploadCloud, Package, Clock } from 'lucide-react';
 import api from '../../services/api';
 import confetti from 'canvas-confetti';
+import SecureImage from '../../components/SecureImage/SecureImage';
 import './OcopPage.css';
 
 class ErrorBoundary extends React.Component {
@@ -36,6 +37,7 @@ const TABS = ['Tất cả', 'Sản phẩm OCOP', 'CNNT Tiêu biểu (Đang dự 
 
 const OcopPageContent = () => {
     const role = localStorage.getItem('role');
+    const isCoSo = role === 'Role_CoSo' || role === '1';
     const [products, setProducts] = useState([]);
     const [total, setTotal] = useState(0);
     const [activeTab, setActiveTab] = useState(TABS[0]);
@@ -129,7 +131,7 @@ const OcopPageContent = () => {
             setDonVis(donViData);
             if (!formData.donViId) {
                 const userDonViId = localStorage.getItem('donViId');
-                if (role === '1' && userDonViId) {
+                if (isCoSo && userDonViId) {
                     setFormData(prev => ({ ...prev, donViId: userDonViId }));
                 } else if (donViData.length > 0) {
                     setFormData(prev => ({ ...prev, donViId: donViData[0].id }));
@@ -153,9 +155,7 @@ const OcopPageContent = () => {
             setIsUploading(true);
             const uploadData = new FormData();
             uploadData.append('file', file);
-            const res = await api.post('/file/upload', uploadData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const res = await api.post('/file/upload', uploadData);
             if (res.data && res.data.fileUrl) {
                 setFormData({ ...formData, hinhAnh: res.data.fileUrl });
                 showToast('Đã tải ảnh lên thành công!', 'success');
@@ -190,7 +190,7 @@ const OcopPageContent = () => {
             setFormData({
                 id: null,
                 tenSanPham: '',
-                donViId: role === '1' ? (userDonViId || (donVis.length > 0 ? donVis[0].id : '')) : (donVis.length > 0 ? donVis[0].id : ''),
+                donViId: isCoSo ? (userDonViId || (donVis.length > 0 ? donVis[0].id : '')) : (donVis.length > 0 ? donVis[0].id : ''),
                 phanHangSao: 0,
                 capChungNhan: '',
                 ngayCongNhan: '',
@@ -233,7 +233,7 @@ const OcopPageContent = () => {
             if (isSubmit) {
                 showToast('Nộp hồ sơ dự thi thành công!');
             } else {
-                showToast(role === '1' ? 'Lưu nháp thành công!' : 'Lưu sản phẩm thành công!');
+                showToast(isCoSo ? 'Lưu nháp thành công!' : 'Lưu sản phẩm thành công!');
             }
         } catch (error) {
             console.error('Error saving:', error);
@@ -341,7 +341,7 @@ const OcopPageContent = () => {
                         <Download size={18} />
                         Xuất Excel
                     </button>
-                    {(role === '4' || role === '2' || role === 'Role_Admin' || role === 'Role_So' || role === '1' || role === 'Role_CoSo') && (
+                    {(role === '4' || role === '2' || role === 'Role_Admin' || role === 'Role_So' || isCoSo) && (
                         <button className="ocop-action-btn" onClick={() => handleOpenModal()}>
                             <Plus size={18} />
                             Thêm Sản Phẩm
@@ -351,7 +351,7 @@ const OcopPageContent = () => {
             </div>
 
             {/* Thêm Dashboard Cards cho role CNNT */}
-            {role === '1' && (
+            {isCoSo && (
                 <div className="db-grid-3" style={{ marginBottom: '24px' }}>
                     <div className="stat-card" style={{ borderLeftColor: '#94a3b8' }}>
                         <div className="stat-info">
@@ -424,41 +424,66 @@ const OcopPageContent = () => {
                     products.map(item => (
                         <div key={item.id} className="ocop-card">
                             <div className="ocop-card-actions">
-                                {role !== '1' && item.loaiSanPham === 2 && item.trangThai === 1 ? (
+                                {!isCoSo && item.loaiSanPham === 2 && item.trangThai === 1 ? (
                                     <div className="action-icon" onClick={() => handleOpenVoteModal(item)} style={{ background: '#1e40af', color: 'white', border: 'none' }} title="Bình chọn CNNT">
                                         <Award size={16} />
                                     </div>
                                 ) : (
-                                    (role === '4' || role === '2' || role === 'Role_Admin' || role === 'Role_So' || (role === '1' && item.trangThai === 0)) && (
+                                    (role === '4' || role === '2' || role === 'Role_Admin' || role === 'Role_So' || (isCoSo && item.trangThai === 0)) && (
                                         <div className="action-icon edit" onClick={() => handleOpenModal(item)}>
                                             <Edit2 size={16} />
                                         </div>
                                     )
                                 )}
-                                {(role === '4' || role === '2' || role === 'Role_Admin' || role === 'Role_So' || (role === '1' && item.trangThai === 0)) && (
+                                {(role === '4' || role === '2' || role === 'Role_Admin' || role === 'Role_So' || (isCoSo && item.trangThai === 0)) && (
                                     <div className="action-icon delete" onClick={() => { setSelectedItem(item); setIsDeleteModalOpen(true); }}>
                                         <Trash2 size={16} />
                                     </div>
                                 )}
                             </div>
 
-                            <div className="ocop-card-img" style={{ backgroundImage: `url("${item.hinhAnh || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=300'}")` }}>
+                            <SecureImage 
+                                asBackground={true}
+                                className="ocop-card-img" 
+                                src={item.hinhAnh} 
+                                fallbackSrc="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=300"
+                            >
                                 <div className="ocop-card-top-overlay">
                                     {item.trangThai === 0 ? (
                                         <span className="ocop-cert-badge" style={{ backgroundColor: '#64748b', color: 'white' }}>
                                             Bản nháp
                                         </span>
                                     ) : item.loaiSanPham === 2 ? (
-                                        <span className={`ocop-cert-badge ${item.trangThai === 2 ? 'cert-quocgia' : 'cert-huyen'}`}>
-                                            {item.trangThai === 2 ? 'CNNT Đạt Bình Chọn' : 'Đăng Ký Dự Thi CNNT'}
-                                        </span>
+                                        item.trangThai === 3 ? (
+                                            <span 
+                                                className="ocop-cert-badge"
+                                                style={{ 
+                                                    backgroundColor: 'rgba(220, 38, 38, 0.9)', 
+                                                    color: '#ffffff', 
+                                                    border: '1px solid #b91c1c',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    fontWeight: 600,
+                                                    padding: '4px 8px',
+                                                    boxShadow: '0 2px 4px rgba(220, 38, 38, 0.25)'
+                                                }}
+                                            >
+                                                <XCircle size={14} strokeWidth={2.5} />
+                                                KHÔNG ĐẠT GIẢI
+                                            </span>
+                                        ) : (
+                                            <span className={`ocop-cert-badge ${item.trangThai === 2 ? 'cert-quocgia' : 'cert-huyen'}`}>
+                                                {item.trangThai === 2 ? 'CNNT ĐẠT BÌNH CHỌN' : 'ĐĂNG KÝ DỰ THI CNNT'}
+                                            </span>
+                                        )
                                     ) : (
                                         <span className={`ocop-cert-badge ${getCertStyle(item.capChungNhan)}`}>
                                             {item.capChungNhan || 'Cấp Huyện'}
                                         </span>
                                     )}
                                 </div>
-                            </div>
+                            </SecureImage>
 
                             <div className="ocop-card-body">
                                 <div style={{ marginBottom: '8px', minHeight: '20px' }}>
@@ -509,8 +534,8 @@ const OcopPageContent = () => {
                         <div className="ocop-modal-header">
                             <h2 className="ocop-modal-title">
                                 {selectedItem
-                                    ? (role === '1' ? "Chi tiết đăng ký dự thi" : "Cập nhật Sản Phẩm")
-                                    : (role === '1' ? "Đăng ký dự thi sản phẩm mới" : "Thêm mới Sản Phẩm")}
+                                    ? (isCoSo ? "Chi tiết đăng ký dự thi" : "Cập nhật Sản Phẩm")
+                                    : (isCoSo ? "Đăng ký dự thi sản phẩm mới" : "Thêm mới Sản Phẩm")}
                             </h2>
                         </div>
                         <div className="ocop-modal-body">
@@ -574,7 +599,7 @@ const OcopPageContent = () => {
                                             padding: '8px',
                                             position: 'relative'
                                         }}>
-                                            <img
+                                            <SecureImage
                                                 src={formData.hinhAnh}
                                                 alt="Preview"
                                                 style={{
@@ -626,15 +651,15 @@ const OcopPageContent = () => {
                                         </select>
                                     </div>
                                 </div>
-                                {formData.loaiSanPham === 1 && !(role === '1' && formData.trangThai === 0) && (
+                                {formData.loaiSanPham === 1 && !(isCoSo && formData.trangThai === 0) && (
                                     <div style={{ display: 'flex', gap: '16px' }}>
                                         <div style={{ flex: 1 }}>
                                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Hạng Sao</label>
                                             <select
-                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isCoSo ? '#f1f5f9' : 'white' }}
                                                 value={formData.phanHangSao}
                                                 onChange={(e) => setFormData({ ...formData, phanHangSao: e.target.value })}
-                                                disabled={role === '1'}
+                                                disabled={isCoSo}
                                             >
                                                 {[3, 4, 5].map(s => (
                                                     <option key={s} value={s}>{s} Sao</option>
@@ -644,10 +669,10 @@ const OcopPageContent = () => {
                                         <div style={{ flex: 1 }}>
                                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Cấp Chứng Nhận</label>
                                             <select
-                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isCoSo ? '#f1f5f9' : 'white' }}
                                                 value={formData.capChungNhan}
                                                 onChange={(e) => setFormData({ ...formData, capChungNhan: e.target.value })}
-                                                disabled={role === '1'}
+                                                disabled={isCoSo}
                                             >
                                                 {CAP_CHUNG_NHAN_OPTIONS.map(opt => (
                                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -656,15 +681,15 @@ const OcopPageContent = () => {
                                         </div>
                                     </div>
                                 )}
-                                {formData.loaiSanPham === 2 && !(role === '1' && formData.trangThai === 0) && (
+                                {formData.loaiSanPham === 2 && !(isCoSo && formData.trangThai === 0) && (
                                     <div style={{ display: 'flex', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
                                         <div style={{ flex: 1 }}>
                                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem', color: '#1e3a8a' }}>Trạng thái dự thi *</label>
                                             <select
-                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isCoSo ? '#f1f5f9' : 'white' }}
                                                 value={formData.trangThai}
                                                 onChange={(e) => setFormData({ ...formData, trangThai: Number(e.target.value) })}
-                                                disabled={role === '1'}
+                                                disabled={isCoSo}
                                             >
                                                 <option value={1}>Đăng ký dự thi</option>
                                                 <option value={2}>Đạt bình chọn</option>
@@ -675,35 +700,35 @@ const OcopPageContent = () => {
                                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem', color: '#1e3a8a' }}>Năm bình chọn *</label>
                                             <input
                                                 type="number"
-                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isCoSo ? '#f1f5f9' : 'white' }}
                                                 value={formData.namBinhChon}
                                                 onChange={(e) => setFormData({ ...formData, namBinhChon: e.target.value })}
-                                                disabled={role === '1'}
+                                                disabled={isCoSo}
                                             />
                                         </div>
                                     </div>
                                 )}
-                                {!(role === '1' && formData.trangThai === 0) && (
+                                {!(isCoSo && formData.trangThai === 0) && (
                                     <div style={{ display: 'flex', gap: '16px' }}>
                                         <div style={{ flex: 1 }}>
                                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Số Quyết Định</label>
                                             <input
                                                 type="text"
-                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isCoSo ? '#f1f5f9' : 'white' }}
                                                 value={formData.qD_CongNhan}
                                                 onChange={(e) => setFormData({ ...formData, qD_CongNhan: e.target.value })}
-                                                disabled={role === '1'}
-                                                placeholder={role === '1' ? 'Chờ Sở cập nhật' : ''}
+                                                disabled={isCoSo}
+                                                placeholder={isCoSo ? 'Chờ Sở cập nhật' : ''}
                                             />
                                         </div>
                                         <div style={{ flex: 1 }}>
                                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Ngày Công Nhận</label>
                                             <input
                                                 type="date"
-                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: role === '1' ? '#f1f5f9' : 'white' }}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isCoSo ? '#f1f5f9' : 'white' }}
                                                 value={formData.ngayCongNhan}
                                                 onChange={(e) => setFormData({ ...formData, ngayCongNhan: e.target.value })}
-                                                disabled={role === '1'}
+                                                disabled={isCoSo}
                                             />
                                         </div>
                                     </div>
@@ -720,9 +745,9 @@ const OcopPageContent = () => {
                                 disabled={!formData.tenSanPham || !formData.donViId}
                                 className="ocop-modal-btn save"
                             >
-                                {role === '1' ? 'Lưu Nháp' : 'Lưu Sản Phẩm'}
+                                {isCoSo ? 'Lưu Nháp' : 'Lưu Sản Phẩm'}
                             </button>
-                            {role === '1' && selectedItem && formData.trangThai === 0 && (
+                            {isCoSo && selectedItem && formData.trangThai === 0 && (
                                 <button
                                     onClick={() => handleSave(true)}
                                     disabled={!formData.tenSanPham || !formData.donViId}
@@ -775,8 +800,9 @@ const OcopPageContent = () => {
                         <div className="vote-split-layout">
                             {/* Left Column: Product Details */}
                             <div className="vote-product-preview">
-                                <img
-                                    src={selectedItem.hinhAnh || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600'}
+                                <SecureImage
+                                    src={selectedItem.hinhAnh}
+                                    fallbackSrc="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600"
                                     alt="Sản phẩm"
                                     className="vote-product-img"
                                 />

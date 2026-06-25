@@ -1,0 +1,87 @@
+﻿
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\App.jsx
+  56:35  warning  'error' is defined but never used. Allowed unused args must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\components\Layout\AdminLayout.jsx
+  169:9  warning  'username' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Dashboard\DashboardPage.jsx
+  529:14  warning  'err' is defined but never used                                        unused-imports/no-unused-vars
+  546:14  warning  'err' is defined but never used                                        unused-imports/no-unused-vars
+  565:14  warning  'err' is defined but never used                                        unused-imports/no-unused-vars
+  701:85  warning  'idx' is defined but never used. Allowed unused args must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Dashboard\SoDashboard.jsx
+  14:10  warning  'localOcops' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\DeAn\DeAnAppraisalModal.jsx
+  56:9  warning  'hasFailedCriteria' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\DeAn\DeAnFormPage.jsx
+   45:10  warning  'fileDinhKemInfo' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  270:27  error    'fileDinhKemInfo' is assigned to itself                                                     no-self-assign
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\DeAn\DeAnListPage.jsx
+  466:9   warning  'filterRef' is assigned a value but never used. Allowed unused vars must match /^_/u                          unused-imports/no-unused-vars
+  485:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  513:13  error    Empty block statement                                                                                         no-empty
+  555:16  warning  'e' is defined but never used                                                                                 unused-imports/no-unused-vars
+  555:19  error    Empty block statement                                                                                         no-empty
+  660:14  warning  'err' is defined but never used                                                                               unused-imports/no-unused-vars
+  835:14  warning  'err' is defined but never used                                                                               unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\DeAn\TienDoThucHienModal.jsx
+   53:6   warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   82:14  warning  'error' is defined but never used                                                                            unused-imports/no-unused-vars
+  113:14  warning  'error' is defined but never used                                                                            unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\DonVi\DonViPage.jsx
+  151:16  warning  'e' is defined but never used                                            unused-imports/no-unused-vars
+  151:19  error    Empty block statement                                                    no-empty
+  158:16  warning  'e' is defined but never used                                            unused-imports/no-unused-vars
+  158:19  error    Empty block statement                                                    no-empty
+  238:14  warning  'err' is defined but never used                                          unused-imports/no-unused-vars
+  249:16  warning  'err' is defined but never used                                          unused-imports/no-unused-vars
+  427:38  warning  'index' is defined but never used. Allowed unused args must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Kpi\KpiPage.jsx
+  103:6  warning  React Hook useEffect has a missing dependency: 'defaultMetrics'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\LinhVuc\LinhVucPage.jsx
+  40:6  warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\NguoiDung\NguoiDungPage.jsx
+  129:16  warning  'error' is defined but never used  unused-imports/no-unused-vars
+  145:16  warning  'error' is defined but never used  unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Ocop\OcopPage.jsx
+   41:12  warning  'total' is assigned a value but never used. Allowed unused vars must match /^_/u                                                      unused-imports/no-unused-vars
+  100:8   warning  React Hook useEffect has missing dependencies: 'fetchDonVis' and 'fetchProducts'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  104:19  warning  'token' is assigned a value but never used. Allowed unused vars must match /^_/u                                                      unused-imports/no-unused-vars
+  210:19  warning  'token' is assigned a value but never used. Allowed unused vars must match /^_/u                                                      unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Public\HomePage.jsx
+  40:9  warning  'LINH_VUCS' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Public\NewsPage.jsx
+  30:6  warning  React Hook React.useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Public\TraCuuPage.jsx
+   41:10  warning  'totalCount' is assigned a value but never used. Allowed unused vars must match /^_/u                         unused-imports/no-unused-vars
+   46:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  181:21  warning  'isConHieuLuc' is assigned a value but never used. Allowed unused vars must match /^_/u                       unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\QuyetToan\QuyetToanPage.jsx
+  28:20  warning  'e' is defined but never used  unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Register\RegisterPage.jsx
+  8:9  warning  'navigate' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\TinTuc\TinTucAdminPage.jsx
+  39:6  warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\VanBan\VanBanPage.jsx
+  40:6  warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Γ£û 44 problems (5 errors, 39 warnings)
+

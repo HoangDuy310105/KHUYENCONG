@@ -1,0 +1,355 @@
+Hệ Thống quản lý khuyến công 
+
+
+1.Tìm hiểu và phân tích các nghiệp cụ và pháp lý
+ 
+1.1. Đọc & tổng hợp toàn bộ nghiệp vụ từ 2 file tài liệu 
+
+ 	   - Từ file "Mo Ta He Thong Khuyen Cong_V2" (Tập trung vào tính năng phần mềm): 
+Xác định các phân hệ lõi cần xây dựng: Hệ thống gồm các module lớn như Quản lý đề án, Quản lý kinh phí, Quản lý đơn vị, Quản lý chỉ tiêu, Báo cáo và Dashboard. 
+Cấu trúc dữ liệu Đề án (Project Data): Việc phân loại đề án thành Đề án khuyến công địa phương và Đề án khuyến công quốc gia (gồm 3 loại: điểm, theo nhóm, đối tượng cụ thể). Xác định được các trường thông tin bắt buộc phải thiết kế trong Database: Thời gian thực hiện/nghiệm thu, kinh phí, lĩnh vực, địa điểm, các đơn vị liên quan (thi công, thụ hưởng, giám sát).
+Cấu trúc dữ liệu Kinh phí (Fund Data): Hiểu rõ logic bám sát dòng tiền qua các trường: Nguồn kinh phí, loại kinh phí, thời gian và số tiền tạm ứng, thời gian và số tiền thanh toán/quyết toán . 
+Đặc tả module Báo cáo & Dashboard: Tìm hiểu và nắm rõ yêu cầu báo cáo theo biểu mẫu Thông tư 34/2022. Các chỉ tiêu đánh giá hiệu quả (giá trị sản xuất, năng suất lao động, mức tăng thu nhập...) được cung cấp trực tiếp vào hệ thống, không yêu cầu tự tính toán . Dashboard cần trực quan hóa bằng biểu đồ (đề án theo thời gian/lĩnh vực, kinh phí) và Bản đồ phân bố .
+Dự án khuyến công chỉ thực hiện xoay quanh các nội dung:
+Tổ chức đào tạo nghề, truyền nghề theo nhu cầu của cơ sở công nghiệp để tạo việc làm và nâng cao tay nghề cho người lao động.  
+Hỗ trợ nâng cao năng lực quản lý doanh nghiệp, nhận thức và năng lực áp dụng sản xuất sạch hơn trong sản xuất công nghiệp.
+Hỗ trợ xây dựng mô hình trình diễn kỹ thuật.
+Phát triển sản phẩm công nghiệp nông thôn tiêu biểu, thông qua tổ chức bình chọn sản phẩm công nghiệp nông thôn tiêu biểu, thông qua tổ chức bình chọn sản phẩm công nghiệp nông thôn tiêu biểu. 
+Tư vấn trợ giúp các cơ sở công nghiệp nông thôn .
+Cung cấp thông tin về các chính sách phát triển công nghiệp, khuyến công, thông tin thị trường, phổ biến kinh nghiệm, mô hình sản xuất kinh doanh điển hình, sản xuất sạch hơn trong công nghiệp.
+Hỗ trợ liên doanh liên kết, hợp tác kinh tế, phát triển cụm công nghiệp và di dời cơ sở gây ô nhiễm môi trường.
+Hợp tác quốc tế về khuyến công.
+Nâng cao năng lực quản lý và tổ chức thực hiện hoạt động khuyến công.
+- Từ file "Khuyen Cong_QLNN_Tai lieu mo ta_V1_0" (Tập trung vào Workflow & Phân quyền): 
+
+
+
+Xác định các Actor và Phân quyền (Roles): Nhận diện 4 nhóm người dùng chính cần thiết lập phân quyền (Auth) gồm: Bộ Công Thương (Cục Công Thương địa phương), Sở Công Thương, Trung tâm Khuyến công và Cơ sở công nghiệp nông thôn (đơn vị thụ hưởng) . 
+ Mục tiêu thực hiện khuyến công:
+Phát triển công nghiệp nông thôn, tạo việc làm, nâng cao thu nhập cho người dân.
+Thúc đẩy ứng dụng công nghệ mới, sản xuất sạch hơn, bảo vệ môi trường.
+ Nâng cao năng lực cạnh tranh của các doanh nghiệp công nghiệp nông thôn.
+ Góp phần vào quá trình công nghiệp hóa, hiện đại hóa đất nước.
+Luồng Workflow 10 bước Đề án Quốc gia: Đã nắm vững quy trình cốt lõi để cài đặt bộ chuyển đổi trạng thái (State Machine) trong code, bao gồm 10 bước: Đăng ký cấp cơ sở —> Thẩm định cấp cơ sở —> Thẩm định cấp Bộ —> Phê duyệt kế hoạch —> Thông báo giao kế hoạch —> Ký hợp đồng —>Tổ chức thực hiện —>Theo dõi/giám sát —> Báo cáo kết quả —> Thanh lý/quyết toán .
+Luồng Workflow Đề án Địa phương: Hiểu được sự khác biệt về thẩm quyền, do UBND cấp tỉnh phê duyệt chương trình/kế hoạch, Sở Công Thương chủ trì thực hiện và kiểm tra. 
+Các mốc thời gian (Deadlines) để set Rule Validation: Nắm được mốc thời gian quan trọng để validate dữ liệu đầu vào, ví dụ: Thời gian nộp hồ sơ đăng ký đề án quốc gia là trước ngày 20/05 hàng năm , báo cáo tiến độ phải gửi trước ngày 25 hàng tháng.
+Master Data Lĩnh vực: Xác định được cá nhóm hoạt động khuyến công trọng tâm (đào tạo nghề, hỗ trợ mô hình trình diễn, tư vấn trợ giúp...) để làm seed data cho hệ thống 
+   
+
+1.2.Tìm hiểu các pháp lý , nghị định , logic nghiệp vụ
+
+	
+
+
+
+
+
+1.3. Tìm hiểu phần mềm POSTGRESQL 
+PHẦN 1: TỔNG QUAN LÝ THUYẾT VỀ CÔNG CỤ (THEORETICAL BACKGROUND)
+1. PostgreSQL là gì? PostgreSQL (thường gọi tắt là Postgres) là một Hệ quản trị cơ sở dữ liệu quan hệ khách thể (ORDBMS - Object-Relational Database Management System) mã nguồn mở cấp doanh nghiệp, tiên tiến và mạnh mẽ nhất thế giới hiện nay. Nó không chỉ lưu trữ dữ liệu dạng bảng (relational) như SQL Server hay MySQL mà còn hỗ trợ mạnh mẽ dữ liệu phi cấu trúc (NoSQL) như JSON.
+2. Nguồn gốc và Nhà phát triển:
+Nguồn gốc: Bắt nguồn từ dự án POSTGRES (khởi động năm 1986) tại Khoa Khoa học Máy tính thuộc Đại học California, Berkeley, dưới sự dẫn dắt của Giáo sư Michael Stonebraker (người từng đạt giải Turing).
+Nhà phát triển hiện tại: Từ năm 1996 đến nay, công cụ này không thuộc sở hữu của bất kỳ tập đoàn độc quyền nào, mà được phát triển và duy trì bởi Cộng đồng Phát triển Toàn cầu PostgreSQL (PostgreSQL Global Development Group) – một tổ chức tình nguyện gồm hàng ngàn chuyên gia dữ liệu trên toàn thế giới.
+3. Tại sao chọn PostgreSQL cho hệ thống Nhà nước (Khuyến công)?
+Chi phí: Là phần mềm mã nguồn mở hoàn toàn miễn phí (Open Source), giúp tối ưu chi phí hạ tầng khi triển khai dự án công.
+Tính tuân thủ ACID: Đảm bảo tính toàn vẹn dữ liệu ở mức độ cao nhất (Atomicity, Consistency, Isolation, Durability) - cực kỳ quan trọng đối với các phân hệ liên quan đến Quản lý dòng tiền kinh phí Nhà nước.
+Mở rộng linh hoạt (Extensibility): Hệ thống có thể tự định nghĩa các kiểu dữ liệu mới, rất phù hợp với nghiệp vụ quản lý nhà nước thường xuyên có biểu mẫu thay đổi.
+
+PHẦN 2: CẤU HÌNH KỸ THUẬT CHO DỰ ÁN (APPLYING TO .NET 10.0)
+Để giao tiếp giữa Backend (C# .NET 10.0) và PostgreSQL, dự án sẽ áp dụng các đặc thù kỹ thuật sau:
+1. Thư viện kết nối (Packages): Dự án sẽ sử dụng thư viện Npgsql.EntityFrameworkCore.PostgreSQL. Đây là Provider chính thức, cho phép dùng Entity Framework Core (EF Core) để viết các lệnh Migration (Add-Migration, Update-Database) tạo bảng một cách tự động từ code C#.
+2. Ánh xạ kiểu dữ liệu (Data Type Mapping):
+Thời gian (DateTime): Map kiểu DateTime trong C# sang timestamp with time zone (timestamptz) của PostgreSQL. Điều này bắt buộc để lưu chính xác Thời gian nghiệm thu hoặc Thời gian giải ngân bất chấp sự khác biệt múi giờ của máy chủ.
+Khóa chính (PK): Dùng kiểu UUID (tương đương Guid trong C#) hoặc SERIAL / BIGSERIAL (tự động tăng giống Identity trong SQL Server).
+3. Tận dụng kiểu JSONB (Tính năng cốt lõi):
+PostgreSQL cực mạnh ở kiểu dữ liệu JSONB (Lưu JSON dưới dạng nhị phân giúp tốc độ query cực nhanh).
+Áp dụng vào hệ thống: Đối với các biểu mẫu báo cáo phức tạp của Thông tư 34, thay vì tạo hàng chục bảng rời rạc, ta sẽ tạo một cột JSONB trong bảng BaoCao. Trong .NET 8.0, Npgsql hỗ trợ chuyển đổi trực tiếp cột này thành một Object C# (POCO), giúp lưu trữ các chỉ tiêu đánh giá (lao động, năng suất) rất linh hoạt khi biểu mẫu thay đổi.
+4. Xử lý tìm kiếm chuỗi (Case Sensitivity):
+Mặc định, PostgreSQL tìm kiếm phân biệt chữ hoa/chữ thường.
+Giải pháp: Để tính năng Tìm kiếm Tên Đề án hoạt động tốt với tiếng Việt, khi viết LINQ bằng EF Core, phải dùng hàm .ILike() (thay vì .Contains()) hoặc thiết lập Collation chuẩn ở Database để hỗ trợ đối sánh chuỗi tối ưu.
+1.4. Phân tích, liệt kê danh sách tính năng (Feature List) tiềm năng
+1.4.1.Mục tiêu (Các công việc cụ thể cần thực hiện trong Task này):
+Chuyển hóa dữ liệu (Mapping): Từ các yêu cầu quản lý nhà nước từ tài liệu và các Thông tư/Nghị định (ở Task 1.1 & 1.2) thành các tính năng phần mềm thực tế (Ví dụ: Từ quy định "Hồ sơ đề án" chuyển thành "Form nhập liệu Đề án"; Từ "Quy trình phê duyệt" chuyển thành "Luồng trạng thái Workflow").
+Phân rã hệ thống (Breakdown): Chia nhỏ hệ thống Khuyến công thành các phân hệ (Module) lõi bao gồm: Quản lý Danh mục, Quản lý Đề án, Quản lý Kinh phí, và Báo cáo để chuẩn bị tài liệu đầu vào cho việc vẽ giao diện Prototype (Tuần 2) và thiết kế Database (Tuần 3).
+Chốt chặn phạm vi (Scope Boundary): Xác định rõ ranh giới của bản MVP (Minimum Viable Product). Rạch ròi giữa việc "Tính năng nào bắt buộc phải có trong hệ thống và "Tính năng nào sẽ bị loại bỏ (Out-of-scope)" nhằm đảm bảo không bị vỡ tiến độ dự án
+1.4.2.Mô hình Tác nhân - Chức năng tổng quan (Use Case Diagram)
+
+Hình 1: Mô hình Tác nhân - Chức năng tổng quan
+Diễn giải chi tiết Sơ đồ Tác nhân - Chức năng tổng quan : Sơ đồ mô tả ranh giới phần mềm và sự phân quyền kiểm soát dữ liệu chặt chẽ giữa 4 nhóm tác nhân (Actors). Hệ thống tuân thủ nguyên tắc quản lý phân cấp từ địa phương (Cấp cơ sở) lên trung ương (Cấp Bộ): 
+
+
+1. Nhóm Tác nhân 1: Cơ sở Công nghiệp Nông thôn (CS CNNT)
+Vai trò thực tế: Là doanh nghiệp, hợp tác xã trực tiếp thụ hưởng nguồn vốn Khuyến công.
+Quyền hạn trên hệ thống (Use Cases):
+Đăng ký Đề xuất Đề án: Được cấp quyền tạo mới (Create) hồ sơ. Tác nhân nhập các trường dữ liệu tĩnh (Lĩnh vực, Quy mô, Tổng mức đầu tư dự kiến) và Upload hồ sơ gốc (PDF/Doc).
+Tổ chức thực hiện Đề án: Sau khi Đề án được duyệt, tác nhân này có nghĩa vụ truy cập hệ thống để kích hoạt chức năng ẩn <<include>> Báo cáo tiến độ (Hàng tháng), cập nhật % khối lượng hoàn thành và đính kèm minh chứng.
+2. Nhóm Tác nhân 2: Trung tâm Khuyến công & Tư vấn PTCN
+Vai trò thực tế: Là đơn vị sự nghiệp, đóng vai trò hỗ trợ lập dự án hoặc trực tiếp thi công đề án tại địa phương.
+Quyền hạn trên hệ thống (Use Cases):
+Cùng tham gia vào nhánh Tổ chức thực hiện Đề án. Trên phần mềm, tài khoản của Trung tâm KC có quyền thay mặt Cơ sở CNNT để cập nhật hóa đơn, chứng từ chi tiêu và điền số liệu tiến độ để đẩy lên cho Sở kiểm tra.
+3. Nhóm Tác nhân 3: Sở Công Thương (Cấp Tỉnh)
+Vai trò thực tế: Cơ quan quản lý nhà nước tại địa phương, đóng vai trò là "Màng lọc dữ liệu vòng 1".
+Quyền hạn trên hệ thống (Use Cases):
+Thẩm định Đề án cấp cơ sở: Đóng vai trò duyệt (Approve/Reject). Tác nhân có quyền chuyển trạng thái hồ sơ lên cấp Bộ, hoặc ép Cơ sở CNNT phải cập nhật lại dữ liệu. Quá trình này có thể gọi đến chức năng ngoại lệ <<extend>> Kiểm tra, giám sát.
+Nghiệm thu Đề án: Khi dự án kết thúc, cán bộ Sở dùng hệ thống để Upload Biên bản nghiệm thu hiện trường, chốt số liệu thực tế, làm căn cứ pháp lý để mở khóa tính năng Quyết toán.
+4. Nhóm Tác nhân 4: Bộ / Cục Công Thương ĐP (Cấp Trung ương)
+Vai trò thực tế: Cơ quan quản lý tối cao, quản lý toàn bộ Ngân sách nhà nước (Fund Management).
+Quyền hạn trên hệ thống (Use Cases):
+Thẩm định Đề án cấp Bộ: Kiểm duyệt chéo hồ sơ định mức. Chức năng này bắt buộc đi kèm <<include>> tính năng Phê duyệt Kế hoạch KC (Lưu vết quyết định phê duyệt vào DB).
+Giao Kế hoạch & Ký HĐ: Tác nhân sử dụng hệ thống để phát hành số liệu Hợp đồng điện tử. Mắt xích này nắm quyền kiểm soát tối cao với nhánh <<include>> Thanh lý & Quyết toán, nghĩa là chỉ có tài khoản Cục Công Thương mới có quyền nhập số tiền giải ngân cuối cùng và Đóng băng Đề án (Close Workflow).
+1.4.3. Mô hình Tác nhân - Chức năng phân rã chi tiết
+
+Hình 2: Mô hình Tác nhân - Chức năng phân rã chi tiết
+Diễn giải mô hình : Mô hình mở rộng làm rõ các luồng nghiệp vụ ẩn thông qua các mối quan hệ: 
+Mối quan hệ <<extend>> (Luồng ngoại lệ): Chức năng Hủy / Từ chối hồ sơ là mở rộng của Thẩm định cấp Cơ sở. Chức năng Bổ sung hồ sơ là mở rộng của Tạo và Nộp hồ sơ Đề án (chỉ xảy ra khi bị trả về).
+Mối quan hệ <<include>> (Luồng bắt buộc): Chức năng Giải ngân Tạm ứng là bước bắt buộc nằm trong tiến trình Giao Kế hoạch & Ký Hợp đồng.
+
+
+          Bảng 1: Đặc tả Use Case "Thẩm định và Phê duyệt Đề án"
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bảng 2: Đặc tả Use Case "Giải ngân Kinh phí" 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Danh sách tính năng (Feature List) tiềm năng
+1. Phân hệ Quản lý Danh mục (Master Data Module) Phân hệ nền tảng quản lý danh mục dùng chung. Ứng dụng chức năng Import/Export Excel để xử lý dữ liệu lớn. 
+
+
+
+  2. Phân hệ Quản lý Đề án Khuyến công (Core Project Module) Phân hệ lõi (Core) lưu trữ và quản lý thông tin toàn bộ dự án đang triển khai. 
+
+
+
+
+
+.
+3. Phân hệ Workflow & Xử lý trạng thái (Workflow Engine) Cơ chế tự động chuyển đổi trạng thái dự án (State Machine) kết nối các tác nhân. 
+
+
+4. Phân hệ Quản lý Kinh phí (Fund Management Module) Phân hệ theo dõi và khống chế dòng tiền giải ngân, ngăn chặn vượt định mức (Thông tư 28). 
+
+
+
+5. Phân hệ Báo cáo & Dashboard (Analytics Module) 
+
+
+6. Phân hệ Quản lý Chỉ tiêu Đánh giá (KPIs Data Entry) 
+
+
+7. Phân hệ Xác thực và Bổ trợ Hệ thống (Auth & System Utilities) 
+
+
+
+
+
+
+
+8. Phân hệ Xúc tiến thương mại & Sản phẩm tiêu biểu (Trade Promotion & OCOP) 
+
+
+
+9. Phân hệ Quản lý Văn bản Quy phạm pháp luật (Legislative Documents Module) 
+A. Mô tả tổng quan 
+Phân hệ này đóng vai trò là một kho lưu trữ điện tử (E-Library) dùng chung cho toàn hệ thống. Nó giúp tập hợp, quản lý và tra cứu nhanh các hệ thống luật pháp, Nghị định, Thông tư liên quan đến hoạt động Khuyến công (Ví dụ: Nghị định 45/2012/NĐ-CP, Thông tư 28/2018/TT-BTC). Qua đó, các Cơ sở CNNT có thể dễ dàng tiếp cận biểu mẫu chuẩn và nắm bắt kịp thời các quy định pháp lý mới nhất để lập Đề án chính xác, tránh sai sót. 
+B. Thuộc tính dữ liệu quản lý (Data Attributes) 
+Hệ thống sẽ quản lý các Văn bản/Biểu mẫu dựa trên các trường dữ liệu sau:
+Số/Ký hiệu: (Bắt buộc - Unique) Ký hiệu định danh của văn bản (VD: 28/2018/TT-BTC). 
+Trích yếu nội dung: (Bắt buộc) Tóm tắt nội dung văn bản. 
+Ngày có hiệu lực: (Date) Mốc thời gian luật bắt đầu áp dụng. 
+Trạng thái pháp lý: (Enum) Gồm 2 giá trị: [Còn hiệu lực] và [Hết hiệu lực]. 
+File đính kèm: (File URL) Đường dẫn tới file vật lý lưu trên server. 
+C. Bảng Đặc tả Chức năng chi tiết 
+
+
+1.4.3. Đặc tả Vòng đời Đề án Khuyến công (State Machine)
+Để đảm bảo quy trình thẩm định Đề án Khuyến công diễn ra chặt chẽ, đúng quy định pháp luật và tránh tình trạng sai lệch dữ liệu, hệ thống áp dụng cơ chế Quản lý Vòng đời (State Machine).
+
+Tại một thời điểm, mỗi Đề án chỉ có thể nằm ở một trạng thái duy nhất. Việc chuyển đổi từ trạng thái này sang trạng thái khác được hệ thống kiểm soát bằng các Quy tắc nghiệp vụ (Business Rules) và chỉ những Tác nhân (Actor) được phân quyền mới được phép thực hiện.
+A. Bảng Đặc tả Trạng thái & Tác nhân Thẩm định (State Transition Matrix)
+Bảng dưới đây đặc tả chi tiết 9 trạng thái của một Đề án và các rào cản hệ thống tương ứng:
+
+
+
+
+B.Sơ đồ chuyển đổi Trạng thái (State Diagram)
+
+
+Hình 5:Sơ đồ chuyển đổi Trạng thái (State Diagram)
+
+1.4.4. Đặc tả Quy tắc Nghiệp vụ (Business Rules) - Kinh phí & Báo cáo
+Để đảm bảo hệ thống tự động kiểm soát sự minh bạch của dòng tiền và tuân thủ các quy định tài chính của Nhà nước (Đặc biệt là Thông tư 28/2018/TT-BTC), phần mềm áp dụng các quy tắc ràng buộc (Business Rules) cứng yếu sau đây. Hệ thống sẽ tự động bắt lỗi và chặn lưu dữ liệu nếu Tác nhân vi phạm các rules này.
+A. Ràng buộc về Quản lý Kinh phí (Fund Rules) 
+
+
+
+B. Ràng buộc về Báo cáo Tiến độ (Reporting Rules) 
+
+
+
+
+
+
+
+
+
+B. Sơ đồ Thuật toán Kiểm soát Giải ngân & Tạm ứng
+
+
+
+1.5 Thảo luận chốt phạm vi chức năng (Scope) sẽ làm trong 9 tuần
+     Mục đích: Phạm vi  phát triển phần mềm cho phiên bản MVP (9 tuần), bám sát hoàn toàn vào hệ thống tài liệu và thiết kế phân hệ đã được phê duyệt. 
+1.5.1 Mục đích của dự án
+Dự án được xây dựng nhằm số hóa toàn bộ quy trình quản lý nhà nước về hoạt động khuyến công, thay thế cho việc quản lý thủ công qua file rời rạc. Công dụng chính bao gồm:
+Chuẩn hóa dữ liệu: Thống nhất danh mục đơn vị, lĩnh vực và định mức chi theo Nghị định 45/2012/NĐ-CP và Thông tư 28/2018/TT-BTC.
+Kiểm soát dòng tiền: Theo dõi chặt chẽ tiến độ giải ngân (Tạm ứng - Quyết toán), đảm bảo tính minh bạch và chống thất thoát ngân sách.
+Tự động hóa báo cáo: Hỗ trợ trích xuất báo cáo định kỳ theo đúng biểu mẫu pháp lý của Thông tư 34/2022/TT-BCT một cách tức thời.
+Nâng cao năng lực giám sát: Lưu vết lịch sử thao tác của các cấp (Bộ - Sở - Cơ sở) để phục vụ công tác thanh tra, kiểm tra.
+1.5.2. Đầu ra Sản phẩm Phần mềm (Software Deliverables)
+Sau 9 tuần, dự án sẽ bàn giao bộ sản phẩm phần mềm thực tế bao gồm:
+ Hệ thống Backend (.NET 10.0): Mã nguồn xử lý toàn bộ logic nghiệp vụ, workflow phê duyệt và các quy tắc kiểm tra (validation) định mức kinh phí.
+ Cơ sở dữ liệu PostgreSQL: Cấu trúc DB hoàn thiện, đã được tối ưu hóa bằng kiểu dữ liệu JSONB để lưu trữ linh hoạt các chỉ tiêu báo cáo động.
+ Hệ thống quản trị người dùng: Tích hợp xác thực JWT, phân định rõ ranh giới thao tác giữa Cục Công Thương địa phương, Sở Công Thương và Cơ sở công nghiệp nông thôn.
+1.5.3. Đầu ra Tài liệu Kỹ thuật (Technical Deliverables)
+Bộ hồ sơ kỹ thuật đóng vai trò là "bản vẽ thi công" của dự án:
+Sơ đồ quan hệ thực thể (ERD): Bản vẽ chi tiết cấu trúc các bảng dữ liệu, khóa chính, khóa ngoại thể hiện mối quan hệ giữa Đề án, Đơn vị và Kinh phí.
+Tài liệu đặc tả API (Swagger): Hệ thống tài liệu trực tuyến mô tả các hàm chức năng, giúp việc kết nối dữ liệu giữa Backend và Frontend luôn đồng bộ.
+1.5.4. Đầu ra Nghiệp vụ và Báo cáo (Business Deliverables)
+Sản phẩm cuối cùng phục vụ trực tiếp cho công tác chuyên môn:
+Hệ thống tệp báo cáo chuẩn: Khả năng trích xuất dữ liệu sang định dạng Excel/PDF với layout được căn chỉnh chính xác theo Phụ lục của Thông tư 34/2022/TT-BCT.
+Bảng lịch sử vận hành (Audit Log): Hệ thống lưu trữ dấu vết điện tử ghi nhận mọi hành động phê duyệt hoặc thay đổi số tiền kinh phí của người dùng.
+Dashboard phân tích: Các biểu đồ thống kê trực quan về mật độ đề án theo lĩnh vực và tỷ lệ giải ngân kinh phí thực tế so với dự kiến
+
+1.5.5.PHẠM VI CHỨC NĂNG TRONG DỰ ÁN (IN-SCOPE) 
+
+Phân hệ 1: Xác thực & Phân quyền (Auth Module)
+
+Xác thực người dùng bằng cơ chế JWT.
+Phân quyền (Role-based) giới hạn luồng thao tác cho 3 nhóm: Role_Bo (Cục CT), Role_So (Sở CT/Trung tâm KC) và Role_CoSo (Cơ sở thụ hưởng).
+Phân hệ 2: Quản lý Danh mục (Master Data Module)
+Đơn vị tham gia: Form tính năng CRUD. Phân loại rõ: Đơn vị thụ hưởng, Đơn vị thi công, Đơn vị giám sát. Bắt buộc có Rule validate Đơn vị thụ hưởng phải là DNNVV, HTX, Tổ hợp tác.
+Lĩnh vực: Form tính năng CRUD. Khởi tạo sẵn dữ liệu mặc định (Seed data) cho 9 nhóm lĩnh vực theo đúng Nghị định 45/2012/NĐ-CP.
+Phân hệ 3: Quản lý Đề án Khuyến công (Core Project Module)
+Danh sách: Hiển thị Data Grid, phân trang. Hỗ trợ bộ lọc theo Trạng thái, Loại đề án (Quốc gia/Địa phương) và Năm.
+Form Nhập liệu: Cho phép nhập Tên, Lĩnh vực, Địa điểm, Thời gian (Bắt đầu - Kết thúc), Mapping Đơn vị tham gia bằng Dropdown. Hỗ trợ Upload đính kèm hồ sơ PDF/Docx.
+Phân hệ 4: Workflow & Xử lý nghiệp vụ (Workflow Engine)
+Nút chuyển trạng thái: Lập trình luồng thao tác gồm: Trình duyệt cơ sở —>Duyệt/Yêu cầu bổ sung/Từ chối (Cấp cơ sở) —>Duyệt/Yêu cầu bổ sung/Từ chối (Cấp Bộ) —>Giao kế hoạch & Ký HĐ —>Nghiệm thu (Upload biên bản) —>Quyết toán (Đóng đề án).
+Báo cáo tiến độ: Màn hình cho phép Role_So nhập % hoàn thành và ghi chú thực tế hàng tháng.
+Phân hệ 5: Quản lý Kinh phí (Fund Management Module)
+Thiết lập Ngân sách: Nhập nguồn kinh phí và kinh phí dự kiến ban đầu.
+Giải ngân - Tạm ứng: Form ghi nhận Số tiền và Ngày tạm ứng. Logic Validate: Cảnh báo/Chặn chặn thao tác nếu số tiền vượt hạn mức tối đa quy định tại Thông tư 28/2018/TT-BTC.
+Giải ngân - Thanh quyết toán: Form ghi nhận Số tiền thanh toán và Ngày quyết toán. Logic tự động: Tính toán Kinh phí còn lại = Kinh phí dự kiến - (Tạm ứng + Thanh toán).
+Phân hệ 6: Báo cáo & Dashboard (Analytics Module)
+Dashboard: Cung cấp Thống kê thẻ (Cards) đếm số đề án/tổng kinh phí. Vẽ biểu đồ cột so sánh Kinh phí dự kiến và Thực hiện; Biểu đồ tròn phân bổ theo lĩnh vực.
+Xuất báo cáo: Chức năng chọn khoảng thời gian để sinh file báo cáo (Excel/PDF) Mapping tự động vào biểu mẫu Thông tư 34/2022/TT-BCT.
+Phân hệ 7: Quản lý Chỉ tiêu Đánh giá (KPIs Data Entry)
+Cung cấp Form nhập liệu thủ công để thu thập 5 chỉ số sau nghiệm thu: Giá trị sản xuất gia tăng; Số lượng máy móc mới; Số lao động được đào tạo/có việc làm; Mức tăng thu nhập; Tăng trưởng nguồn thu ngân sách.
+Phân hệ 8: Hệ thống bổ trợ (System Utilities)
+Audit Log (Lịch sử thao tác): Tự động lưu vết: Người dùng, Hành động (Duyệt/Giải ngân/Từ chối), Thời gian thực.
+In-app Notifications (Thông báo nội bộ): Chuông cảnh báo tự động khi đề án chuyển trạng thái.
+	
+Phân hệ 9: Quản lý Văn bản quy phạm pháp luật 
+Lưu trữ & Tra cứu: Kho tài liệu dùng chung (Nghị định, Thông tư). Cho phép tra cứu và tải về dưới định dạng tệp PDF, Word. 
+Quản lý Biểu mẫu: Lưu trữ các biểu mẫu chuẩn để Cơ sở Công nghiệp nông thôn (CNNT) có thể dễ dàng tải về sử dụng. 
+Thông báo tự động: Gửi Notification (thông báo đẩy) đến các Cơ sở CNNT khi có luật hoặc biểu mẫu mới được ban hành/cập nhật trên hệ thống. 
+1.6. Chốt sơ đồ luồng nghiệp vụ cốt lõi (Workflow Đề án)
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sơ đồ luồng nghiệp vụ 
+
+
+HÌnh 3:Quy trình tổng quát thực hiện đề án khuyến công quốc gia 
+
+1.6.1.QUY TRÌNH THỰC HIỆN ĐỀ ÁN KHUYẾN CÔNG ĐỊA PHƯƠNG
+Đề án địa phương có luồng duyệt ngắn hơn và do ngân sách tỉnh chi trả, quy trình cốt lõi bao gồm:
+Giai đoạn A: Thiết lập và Phê duyệt kế hoạch hàng năm
+Trước khi có đề án cụ thể, hệ thống phải ghi nhận khung kế hoạch tổng thể của Tỉnh:
+Xây dựng chương trình: Sở Công Thương xây dựng hệ thống văn bản quy phạm và chương trình khuyến công địa phương theo giai đoạn (5 năm) .
+Phê duyệt khung: Chủ tịch UBND cấp tỉnh phê duyệt trực tiếp chương trình và kế hoạch kinh phí hàng năm. Đây là "cột mốc" để hệ thống bắt đầu mở cổng cho phép đăng ký đề án.
+Giai đoạn B: Đăng ký và Thẩm định (Luồng kiểm soát 2 cấp)
+Quy trình thẩm định đề án địa phương diễn ra chặt chẽ qua 2 vòng:
+Bước 1 - Gửi văn bản đăng ký: Các tổ chức, cá nhân hoặc UBND huyện gửi hồ sơ về Sở Công Thương .
+Bước 2 - Thẩm định cấp cơ sở (Sở CT):
+Nếu đạt: Chuyển lên cấp Tỉnh.
+Nếu chưa đạt: Hệ thống hiển thị nút "Yêu cầu bổ sung" để đơn vị điều chỉnh hoặc "Không duyệt" để lưu trữ và đóng hồ sơ .
+Bước 3 - Thẩm định cấp Tỉnh (UBND Tỉnh): UBND Tỉnh tổ chức thẩm định lại lần cuối. Tại đây vẫn có bước rẽ nhánh "Yêu cầu bổ sung" trả ngược về cho đơn vị thực hiện điều chỉnh hồ sơ trước khi phê duyệt chính thức .
+
+Giai đoạn C: Thực hiện, Nghiệm thu và Thanh toán
+Đây là giai đoạn vận hành thực tế và giải ngân tiền:
+Thông báo & Ký hợp đồng: Sau khi được phê duyệt, bố trí kinh phí và xác định được đơn vị thụ hưởng, Sở Công Thương sẽ hướng dẫn, chỉ đạo Trung tâm khuyến công tập trung thực hiện đề án. Tiếp đó, Sở Công Thương triển khai ký hợp đồng trực tiếp với đơn vị thi công để thực hiện đề án.
+Triển khai & Giám sát: Đơn vị thực hiện tiến hành triển khai đề án và báo cáo tiến độ. Trong quá trình này, đơn vị thụ hưởng có trách nhiệm phối hợp với đơn vị thực hiện để triển khai đề án. Sở Công Thương phối hợp với các cơ quan liên quan kiểm tra, đánh giá tình hình thực hiện cũng như việc quản lý, sử dụng kinh phí. Đồng thời, Ủy ban nhân dân cấp tỉnh cũng tổ chức kiểm tra, thanh tra, giải quyết khiếu nại, tố cáo trong các hoạt động khuyến công trên địa bàn.
+Tạm ứng kinh phí: Việc giải ngân bắt đầu bằng khâu tạm ứng kinh phí theo quy định của pháp luật về sử dụng ngân sách nhà nước và các quy định của địa phương để đơn vị có nguồn vốn triển khai công việc.
+Nghiệm thu cơ sở: Đây là bước then chốt. Khi công việc hoàn thành , Sở Công Thương tiến hành kiểm tra, đánh giá kết quả và thực hiện nghiệm thu đề án.
+Quyết toán & Đánh giá hiệu quả: Dựa trên hồ sơ nghiệm thu , tiến hành thanh toán và quyết toán kinh phí theo quy định ngân sách nhà nước. Sau cùng, hồ sơ sẽ được tổng hợp và báo cáo để Cục Công nghiệp địa phương hoặc Ủy ban nhân dân cấp tỉnh thực hiện bước đánh giá hiệu quả của dự án.
+
+

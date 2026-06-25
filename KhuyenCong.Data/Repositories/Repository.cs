@@ -61,7 +61,16 @@ public class Repository<T> : IRepository<T> where T : class
             query = query.Include(includeProperty);
         }
         var totalCount = await query.CountAsync();
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        // BUG-04 FIX: Thêm ORDER BY mặc định theo thời gian tạo giảm dần
+        // Đảm bảo kết quả phân trang nhất quán, không bị trùng hoặc bỏ sót bản ghi
+        // khi người dùng chuyển trang.
+        var items = await query
+            .OrderByDescending(e => EF.Property<DateTime>(e, "CreatedAt"))
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
         return (items, totalCount);
     }
 

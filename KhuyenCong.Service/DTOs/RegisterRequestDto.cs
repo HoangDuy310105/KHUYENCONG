@@ -21,4 +21,7 @@ public class RegisterRequestDto
 
     [Range(1, 2, ErrorMessage = "Loại đơn vị không hợp lệ (1: Thụ hưởng, 2: Thi công)")]
     public int LoaiDonVi { get; set; } = 1; // Mặc định là đơn vị thụ hưởng
+
+    public double? ViDo { get; set; }
+    public double? KinhDo { get; set; }
 }

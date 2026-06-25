@@ -250,7 +250,7 @@
 }
 .db-table tr:hover { background-color: #f8fafc; }
 
-.td-id { font-family: monospace; font-weight: 600; color: #0f172a; }
+.td-id { font-family: monospace; font-weight: 600; color: #0f172a; white-space: nowrap; }
 .td-name { font-weight: 600; color: #1e293b; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .td-field { color: #64748b; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .td-money { font-weight: 700; color: #10b981; text-align: right; }
@@ -314,3 +314,15 @@
 .status-badge.red { background-color: #fef2f2; color: #b91c1c; border-color: transparent; }
 .status-badge.green { background-color: #ecfdf5; color: #047857; border-color: transparent; }
 .status-badge.blue { background-color: #eff6ff; color: #1d4ed8; border-color: transparent; }
+
+.coso-tables-layout {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+@media (min-width: 1200px) {
+  .coso-tables-layout {
+    grid-template-columns: 2fr 1fr;
+  }
+}

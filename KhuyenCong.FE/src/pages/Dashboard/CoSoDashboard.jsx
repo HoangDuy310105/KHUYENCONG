@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { FileText, Clock, CheckCircle, PlusCircle, AlertCircle, Award, Star, Package } from 'lucide-react';
@@ -113,7 +113,7 @@ function CoSoDashboard() {
         </div>
       </div>
 
-      <div className="db-grid-2-custom">
+      <div className="coso-tables-layout">
         <div className="table-panel">
           <div className="table-header">
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>

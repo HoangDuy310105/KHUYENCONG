@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  ClipboardList, Landmark, Search, BarChart3, ScrollText, Building2,
-  HelpCircle, FileText, CheckCircle2, Factory, Map, CircleDollarSign,
+  ClipboardList, Landmark, Search, Building2,
+  HelpCircle, FileText, Factory, Map, CircleDollarSign,
   Cog, Shirt, Sprout, Hammer, FlaskConical, Pizza, Zap, Monitor, LeafyGreen,
-  Newspaper, Target, Play, Tag, MapPin
+  Newspaper, Target
 } from 'lucide-react';
 import './HomePage.css';
 

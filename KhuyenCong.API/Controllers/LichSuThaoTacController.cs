@@ -7,7 +7,7 @@ namespace KhuyenCong.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-// [Authorize] // Có thể thêm Authorize để bảo mật
+[Authorize]
 public class LichSuThaoTacController : ControllerBase
 {
     private readonly ILichSuThaoTacService _lichSuThaoTacService;

@@ -85,6 +85,9 @@ namespace KhuyenCong.Data.Migrations
                     b.Property<decimal>("KinhPhiDuKien")
                         .HasColumnType("numeric");
 
+                    b.Property<decimal>("KinhPhiThucHien")
+                        .HasColumnType("numeric");
+
                     b.Property<Guid>("LinhVucId")
                         .HasColumnType("uuid");
 
@@ -453,7 +456,7 @@ namespace KhuyenCong.Data.Migrations
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             DonViId = new Guid("00000000-0000-0000-0000-000000000001"),
                             IsActive = true,
-                            PasswordHash = "admin@123",
+                            PasswordHash = "$2a$11$PlXjHmRvDP47AePRB6F2Uu.cfUqOXiiS5k7Qotxt/apiK4ST2BJ52",
                             Role = 4,
                             Username = "admin"
                         },
@@ -463,10 +466,47 @@ namespace KhuyenCong.Data.Migrations
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             DonViId = new Guid("00000000-0000-0000-0000-000000000002"),
                             IsActive = true,
-                            PasswordHash = "so@123",
+                            PasswordHash = "$2a$11$MXxcVGaKDj9GsoWlWkIAzOM1a/OIEyR9DvhX3Jd20fCPofvFZl75u",
                             Role = 2,
                             Username = "canboso"
                         });
+                });
+
+            modelBuilder.Entity("KhuyenCong.Core.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("NoiDung")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TieuDe")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("KhuyenCong.Core.Entities.SanPhamOcop", b =>
@@ -530,6 +570,9 @@ namespace KhuyenCong.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<JsonDocument>("BienBanKiemTra")
+                        .HasColumnType("jsonb");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -542,11 +585,20 @@ namespace KhuyenCong.Data.Migrations
                     b.Property<string>("GhiChuThucTe")
                         .HasColumnType("text");
 
+                    b.Property<string>("LyDoTuChoi")
+                        .HasColumnType("text");
+
                     b.Property<int>("PhanTramHoanThanh")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("PhanTramThucTe")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("ThangBaoCao")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("TrangThaiDuyet")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -692,6 +744,9 @@ namespace KhuyenCong.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CoQuanBanHanh")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -815,6 +870,17 @@ namespace KhuyenCong.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("DonVi");
+                });
+
+            modelBuilder.Entity("KhuyenCong.Core.Entities.Notification", b =>
+                {
+                    b.HasOne("KhuyenCong.Core.Entities.NguoiDung", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("KhuyenCong.Core.Entities.SanPhamOcop", b =>

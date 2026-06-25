@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, User, Lock, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, ShieldCheck } from 'lucide-react';
 import api from '../../services/api';
 import './Login.css';
 

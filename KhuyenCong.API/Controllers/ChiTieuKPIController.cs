@@ -28,6 +28,7 @@ public class ChiTieuKPIController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Role_So,Role_Bo,Role_Admin")]
     public async Task<IActionResult> Save([FromBody] CreateChiTieuKPIDto dto)
     {
         var result = await _service.SaveAsync(dto);

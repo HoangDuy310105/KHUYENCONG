@@ -107,9 +107,7 @@ function TinTucAdminPage() {
       if (imageFile) {
         const fileData = new FormData();
         fileData.append('file', imageFile);
-        const uploadRes = await api.post('/file/upload', fileData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const uploadRes = await api.post('/file/upload', fileData);
         
         const path = uploadRes.data?.path || uploadRes.data?.url || uploadRes.data;
         finalImageUrl = typeof path === 'object' ? (path.fileUrl || path.url) : path;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, CheckCircle, XCircle, Upload, AlertCircle } from 'lucide-react';
 import './DeAnAppraisalModal.css';
 
@@ -206,7 +206,7 @@ const DeAnAppraisalModal = ({ isOpen, onClose, item, onApprove, onReject, onRequ
               onClick={handleApproveSubmit}
               disabled={!canApprove}
             >
-              <CheckCircle size={16} /> TRÌNH BỘ CÔNG THƯƠNG
+              <CheckCircle size={16} /> {item.nguonKinhPhi === 2 ? 'TRÌNH UBND TỈNH PHÊ DUYỆT' : 'TRÌNH BỘ CÔNG THƯƠNG'}
             </button>
           </div>
         </div>

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Plus, FileSpreadsheet, Search, ChevronDown,
+  Edit2, Trash2, Plus, FileSpreadsheet, Search, ChevronDown,
   Eye, Wrench, CheckCircle, XCircle, Clock,
-  FolderOpen, RefreshCw, X, HelpCircle, Info, FileText,
+  FolderOpen, RefreshCw, X, Info, FileText,
   TrendingUp
 } from 'lucide-react';
 import api from '../../services/api';
@@ -11,6 +11,7 @@ import * as XLSX from 'xlsx';
 import { useDialog } from '../../context/DialogContext';
 import confetti from 'canvas-confetti';
 import DeAnAppraisalModal from './DeAnAppraisalModal';
+import TienDoThucHienModal from './TienDoThucHienModal'; // Thêm Modal mới cho luồng BUG-04
 import './DeAnList.css';
 
 // ── TRẠNG THÁI ĐỀ ÁN (9 trạng thái đồng bộ với Backend) ──────────────────────────
@@ -24,12 +25,15 @@ const STATUS_MAP = {
   6: { label: 'Đang Thực Hiện', color: '#047857', bg: '#ecfdf5' },
   7: { label: 'Đã Nghiệm Thu', color: '#6d28d9', bg: '#f5f3ff' },
   8: { label: 'Đã Quyết Toán', color: '#2d3a4fff', bg: '#f9fafb' },
+  9: { label: 'Chờ Tỉnh Phê Duyệt', color: '#c026d3', bg: '#fdf4ff' },
 };
 
-function WorkflowBar({ status }) {
-  const active = DB_TO_VISUAL[status] ?? 0;
+function WorkflowBar({ status, nguonKinhPhi }) {
+  const isLocal = nguonKinhPhi === 2;
+  const active = isLocal ? (DB_TO_VISUAL_LOCAL[status] ?? 0) : (DB_TO_VISUAL[status] ?? 0);
   const isError = status === 3 || status === 4;
-  const percent = active === 10 ? 100 : Math.round((active / 10) * 100);
+  const totalSteps = isLocal ? 8 : 10; // Đề án địa phương có 9 bước (index 0->8)
+  const percent = active === totalSteps ? 100 : Math.round((active / totalSteps) * 100);
   const color = isError ? '#ef4444' : (STATUS_MAP[status]?.color || '#64748b');
 
   return (
@@ -57,8 +61,11 @@ function StatusBadge({ status }) {
   );
 }
 
-// Map trạng thái DB (0-8) → chỉ số bước hiển thị (0-10)
-const DB_TO_VISUAL = { 0: 0, 1: 1, 2: 2, 3: 1, 4: 2, 5: 3, 6: 6, 7: 8, 8: 9 };
+// Map trạng thái DB (0-8) → chỉ số bước hiển thị (0-10) cho Đề án Quốc gia
+const DB_TO_VISUAL = { 0: 0, 1: 1, 2: 2, 3: 1, 4: 2, 5: 3, 6: 6, 7: 8, 8: 10, 9: 2 };
+
+// Map trạng thái DB → chỉ số bước cho Đề án Địa phương (Bỏ qua Cục, Giao KH)
+const DB_TO_VISUAL_LOCAL = { 0: 0, 1: 1, 3: 1, 4: 1, 9: 2, 5: 3, 6: 4, 7: 6, 8: 8 };
 
 // 11 nút (10 bước + Hoàn tất) theo đúng quy trình khuyến công quốc gia
 const STEPS_11 = [
@@ -75,10 +82,27 @@ const STEPS_11 = [
   { label: 'Hoàn tất\nđề án', isLast: true },
 ];
 
-function ProjectStepper({ status }) {
-  const active = DB_TO_VISUAL[status] ?? 0;
+// 9 bước cho quy trình khuyến công địa phương
+const STEPS_LOCAL = [
+  { label: 'Đăng ký\nhồ sơ' },
+  { label: 'Thẩm định\ncấp Sở' },
+  { label: 'UBND Tỉnh\nphê duyệt' },
+  { label: 'Ký hợp\nđồng' },
+  { label: 'Đang\nthực hiện' },
+  { label: 'Kiểm tra\ngiám sát' },
+  { label: 'Báo cáo\nnghiệm thu' },
+  { label: 'Thanh lý\nquyết toán' },
+  { label: 'Hoàn tất\nđề án', isLast: true },
+];
+
+function ProjectStepper({ status, nguonKinhPhi }) {
+  const isLocal = nguonKinhPhi === 2;
+  const active = isLocal ? (DB_TO_VISUAL_LOCAL[status] ?? 0) : (DB_TO_VISUAL[status] ?? 0);
+  const steps = isLocal ? STEPS_LOCAL : STEPS_11;
+
   const isError = status === 3 || status === 4;
-  const percent = active === 10 ? 100 : Math.round((active / 10) * 100);
+  const totalSteps = steps.length - 1;
+  const percent = active === totalSteps ? 100 : Math.round((active / totalSteps) * 100);
 
   return (
     <div className="stepper11-wrap">
@@ -93,7 +117,7 @@ function ProjectStepper({ status }) {
           <div className="stepper11-line-fill" style={{ width: `${percent}%` }} />
         </div>
         <div className="stepper11-nodes">
-          {STEPS_11.map((step, i) => {
+          {steps.map((step, i) => {
             const isDone = i < active && !isError;
             const isCurrent = i === active;
             const isErrorStep = isError && isCurrent;
@@ -128,7 +152,7 @@ function formatVND(amount) {
 }
 
 // ── ACTION DROPDOWN ────────────────────────────────────────────────────────────
-function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert, showPrompt, onOpenUploadModal, onOpenAppraisalModal }) {
+function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert, showPrompt, onOpenUploadModal, onOpenAppraisalModal, onEdit, onDelete }) {
   const ref = useRef(null);
 
   const userRole = localStorage.getItem('role') || '';
@@ -222,18 +246,21 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
   const isAdmin = userRole === 'Role_Admin' || userRole === '4';
   const isTTKC = userRole === 'Role_TTKC' || userRole === '5';
 
-  const showNop = (isCoSo || isTTKC || isAdmin) && (item.trangThai === 0 || item.trangThai === 3);
+  const showNop = (isCoSo || isTTKC || isAdmin) && (item.trangThai === 0 || item.trangThai === 3 || item.trangThai === 4);
 
   const showDuyetSo = (isSo || isAdmin) && (item.trangThai === 1);
   const showDuyetBo = (isBo || isAdmin) && (item.trangThai === 2);
+  const showPheDuyetDiaPhuong = (isSo || isAdmin) && (item.trangThai === 9);
 
   // Trạng thái nâng cao
   const showKyHopDong = (isSo || isBo || isAdmin) && (item.trangThai === 5);
   const showNghiemThu = (isSo || isAdmin) && (item.trangThai === 6);
-  const showQuyetToan = (isBo || isAdmin) && (item.trangThai === 7);
+  const showQuyetToan = ((isBo || isAdmin) && item.trangThai === 7 && item.nguonKinhPhi !== 2) || ((isSo || isAdmin) && item.trangThai === 7 && item.nguonKinhPhi === 2);
   const showKPI = (isSo || isCoSo || isAdmin) && (item.trangThai >= 6);
 
-  const hasActions = showNop || showDuyetSo || showDuyetBo || showKyHopDong || showNghiemThu || showQuyetToan || showKPI;
+  const showEdit = (isCoSo && (item.trangThai === 0 || item.trangThai === 3)) || isAdmin;
+  const showDelete = (isCoSo && item.trangThai === 0) || isAdmin;
+  const hasActions = showNop || showEdit || showDelete || showDuyetSo || showDuyetBo || showPheDuyetDiaPhuong || showKyHopDong || showNghiemThu || showQuyetToan || showKPI;
 
   return (
     <div className="action-dropdown" ref={ref}>
@@ -257,6 +284,27 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
             Chi tiết hồ sơ
           </button>
 
+          {showEdit && (
+            <button
+              className="action-menu-item"
+              onClick={() => { onEdit(item); }}
+            >
+              <div className="action-icon"><Edit2 size={14} /></div>
+              Sửa đề án
+            </button>
+          )}
+
+          {showDelete && (
+            <button
+              className="action-menu-item danger"
+              onClick={() => { onDelete(item); }}
+            >
+              <div className="action-icon danger"><Trash2 size={14} /></div>
+              Xóa đề án
+            </button>
+          )}
+
+
           {showNop && (
             <button
               className="action-menu-item success"
@@ -268,13 +316,23 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
           )}
 
           {showDuyetSo && (
+            <button
+              className="action-menu-item success"
+              onClick={() => { onOpenAppraisalModal ? onOpenAppraisalModal(item) : handleDuyet(); }}
+            >
+              <div className="action-icon success"><CheckCircle size={14} /></div>
+              Duyệt thẩm định
+            </button>
+          )}
+
+          {showPheDuyetDiaPhuong && (
             <>
               <button
                 className="action-menu-item success"
-                onClick={() => { onOpenAppraisalModal ? onOpenAppraisalModal(item) : handleDuyet(); }}
+                onClick={() => { if (onOpenUploadModal) onOpenUploadModal('phe-duyet-dia-phuong', item); }}
               >
                 <div className="action-icon success"><CheckCircle size={14} /></div>
-                Duyệt thẩm định
+                Quyết định Phê duyệt (Tỉnh)
               </button>
               <button
                 className="action-menu-item danger"
@@ -282,13 +340,6 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
               >
                 <div className="action-icon danger"><XCircle size={14} /></div>
                 Yêu cầu sửa
-              </button>
-              <button
-                className="action-menu-item danger"
-                onClick={() => { handleTuChoi(); }}
-              >
-                <div className="action-icon danger"><XCircle size={14} /></div>
-                Từ chối đề án
               </button>
             </>
           )}
@@ -374,6 +425,21 @@ function ActionDropdown({ item, onViewDetail, onRefresh, showConfirm, showAlert,
 
 // ── MAIN PAGE ──────────────────────────────────────────────────────────────────
 function DeAnListPage() {
+  const handleEdit = (item) => {
+    navigate('/de-an/sua/' + item.id);
+  };
+
+  const handleDelete = async (item) => {
+    if (!await contextShowConfirm('Xác nhận', 'Bạn có chắc chắn muốn xóa đề án này không?', 'warning')) return;
+    try {
+      await api.delete('/dean/' + item.id);
+      contextShowAlert('Thông báo', 'Đã xóa đề án thành công', 'success');
+      setRefreshTrigger(p => p + 1);
+    } catch (err) {
+      contextShowAlert('Lỗi', err.response?.data?.Message || 'Xóa thất bại', 'error');
+    }
+  };
+
   const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -393,6 +459,11 @@ function DeAnListPage() {
   const [appraisalModalOpen, setAppraisalModalOpen] = useState(false);
   const [appraisalItem, setAppraisalItem] = useState(null);
 
+  // BUG-04: Thêm Modal Tiến độ
+  const [tienDoModalOpen, setTienDoModalOpen] = useState(false);
+  const [tienDoItem, setTienDoItem] = useState(null);
+
+  const filterRef = useRef(null);
   const { showAlert: contextShowAlert, showConfirm: contextShowConfirm, showPrompt: contextShowPrompt } = useDialog();
 
   const showConfirm = (message) => contextShowConfirm('Xác nhận', message, 'warning');
@@ -439,7 +510,7 @@ function DeAnListPage() {
     try {
       const res = await api.get('/linhvuc');
       setLinhVucs(Array.isArray(res.data) ? res.data : []);
-    } catch { }
+    } catch (error) { console.error('Lỗi khi tải lĩnh vực:', error); }
   };
 
   const filtered = data.filter(item => {
@@ -481,19 +552,39 @@ function DeAnListPage() {
       try {
         const ldaRes = await api.get('/loaidean');
         if (ldaRes.data && ldaRes.data.length > 0) defaultLoaiDeAnId = ldaRes.data[0].id;
-      } catch (e) { }
+      } catch (error) { console.warn('Lỗi khi tải loại đề án mặc định:', error); }
 
       let defaultDonViId = localStorage.getItem('donViId');
       if (!defaultDonViId) {
         defaultDonViId = "00000000-0000-0000-0000-000000000000";
       }
 
+      let projectsToImport = [];
+
+      // Nhận diện form dọc (Cột A là Trường thông tin, Cột B là Giá trị mẫu)
+      const isVertical = json.length > 0 && (Object.keys(json[0]).some(k => k.toLowerCase().includes('trường') || k.toLowerCase().includes('giá trị')));
+
+      if (isVertical) {
+        let singleProject = {};
+        json.forEach(item => {
+          const keys = Object.keys(item);
+          const key = item[keys[0]]; // Trường thông tin
+          const val = item[keys[1]]; // Giá trị mẫu
+          if (key) {
+            singleProject[key.trim()] = val;
+          }
+        });
+        projectsToImport.push(singleProject);
+      } else {
+        projectsToImport = json;
+      }
+
       let countSuccess = 0;
-      for (const row of json) {
+      for (const row of projectsToImport) {
         const payload = {
-          tenDeAn: row['Tên Đề Án'] || row['TenDeAn'] || row['TÊN ĐỀ ÁN'] || 'Đề án Import từ Excel',
-          maDeAn: row['Mã Đề Án'] || row['MaDeAn'] || row['MÃ ĐỀ ÁN'] || `DA-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          kinhPhiDuKien: parseFloat(row['Kinh Phí'] || row['KinhPhi'] || row['KINH PHÍ'] || 0),
+          tenDeAn: row['Tên đề án'] || row['Tên Đề Án'] || row['TenDeAn'] || row['TÊN ĐỀ ÁN'] || 'Đề án Import từ Excel',
+          maDeAn: row['Mã đề án'] || row['Mã Đề Án'] || row['MaDeAn'] || row['MÃ ĐỀ ÁN'] || `DA-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          kinhPhiDuKien: parseFloat(row['Kinh phí dự kiến (VNĐ)'] || row['Kinh Phí'] || row['KinhPhi'] || row['KINH PHÍ'] || 0),
           linhVucId: defaultLinhVucId,
           loaiDeAnId: defaultLoaiDeAnId,
           donViThuHuongId: defaultDonViId,
@@ -509,7 +600,7 @@ function DeAnListPage() {
         }
       }
 
-      contextShowAlert('Thành công', `Đã nhập thành công ${countSuccess}/${json.length} đề án từ Excel!`, 'success');
+      contextShowAlert('Thành công', `Đã nhập thành công ${countSuccess}/${projectsToImport.length} đề án từ Excel!`, 'success');
       setRefreshTrigger(p => p + 1);
     } catch (err) {
       console.error(err);
@@ -578,9 +669,7 @@ function DeAnListPage() {
       setIsUploading(true);
       const formData = new FormData();
       formData.append('file', file);
-      const res = await api.post('/file/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await api.post('/file/upload', formData);
       if (res.data && res.data.fileUrl) {
         setRejectFileUrl(res.data.fileUrl);
       }
@@ -602,9 +691,7 @@ function DeAnListPage() {
       setIsUploading(true);
       const formData = new FormData();
       formData.append('file', file);
-      const res = await api.post('/file/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await api.post('/file/upload', formData);
 
       // Backend trả về FileUrl (chữ F hoa) - tương thích cả 2 cách viết
       const fileUrl = res.data.FileUrl || res.data.fileUrl;
@@ -622,6 +709,11 @@ function DeAnListPage() {
           headers: { 'Content-Type': 'application/json' }
         });
         successMsg = '✅ Đã nghiệm thu đề án thành công!';
+      } else if (type === 'phe-duyet-dia-phuong') {
+        await api.post(`/dean/${item.id}/phe-duyet-dia-phuong`, JSON.stringify(fileUrl), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+        successMsg = '✅ Đã cập nhật Quyết định phê duyệt thành công!';
       }
 
       setRefreshTrigger(p => p + 1);
@@ -676,9 +768,7 @@ function DeAnListPage() {
       setIsUploading(true);
       const fileData = new FormData();
       fileData.append('file', file);
-      const res = await api.post('/file/upload', fileData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await api.post('/file/upload', fileData);
       const fileUrl = res.data.FileUrl || res.data.fileUrl;
       if (!fileUrl) throw new Error('Upload file thất bại.');
 
@@ -764,6 +854,7 @@ function DeAnListPage() {
             LÀM MỚI
           </button>
 
+          {/* Nút Nhập Excel: Đã khôi phục lại cho Role_CoSo theo yêu cầu Demo */}
           <input
             type="file"
             ref={fileInputRef}
@@ -781,16 +872,29 @@ function DeAnListPage() {
 
           {/* Nút Xuất Báo Cáo TT34 */}
           {(isSo || isAdmin || isBo || isTTKC) && (
-            <a
-              href={`http://localhost:5030/api/baocao/export-tt34?year=${new Date().getFullYear()}`}
+            <button
               className="btn-action-primary"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', backgroundColor: '#0f172a', padding: '6px 12px', borderRadius: '4px', color: '#fff', fontSize: '13px', fontWeight: 600 }}
-              target="_blank"
-              rel="noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', backgroundColor: '#0f172a', padding: '6px 12px', borderRadius: '4px', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer', border: 'none' }}
+              onClick={async () => {
+                try {
+                  const year = new Date().getFullYear();
+                  const res = await api.get(`/baocao/export-tt34?year=${year}`, { responseType: 'blob' });
+                  const url = window.URL.createObjectURL(new Blob([res.data]));
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.setAttribute('download', `BaoCaoTT34_${year}.xlsx`);
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                  window.URL.revokeObjectURL(url);
+                } catch (e) {
+                  alert('Xuất báo cáo thất bại: ' + (e.response?.data?.Message || e.message));
+                }
+              }}
             >
               <FileSpreadsheet size={15} />
               BÁO CÁO TT34
-            </a>
+            </button>
           )}
 
           <button
@@ -890,7 +994,7 @@ function DeAnListPage() {
                       </td>
                       <td className="td-status">
                         <StatusBadge status={item.trangThai} />
-                        <WorkflowBar status={item.trangThai} />
+                        <WorkflowBar status={item.trangThai} nguonKinhPhi={item.nguonKinhPhi} />
                       </td>
                       <td className="td-action" onClick={e => e.stopPropagation()}>
                         <ActionDropdown
@@ -902,6 +1006,8 @@ function DeAnListPage() {
                           showPrompt={showPrompt}
                           onOpenUploadModal={(type, it) => setUploadModalData({ type, item: it })}
                           onOpenAppraisalModal={(it) => { setAppraisalItem(it); setAppraisalModalOpen(true); }}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
                         />
                       </td>
                     </tr>
@@ -918,8 +1024,8 @@ function DeAnListPage() {
                 Hiển thị {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filtered.length)} trên {filtered.length} đề án
               </span>
               <div style={{ display: 'flex', gap: '4px' }}>
-                <button 
-                  disabled={safePage === 1} 
+                <button
+                  disabled={safePage === 1}
                   onClick={() => setCurrentPage(p => p - 1)}
                   style={{ padding: '6px 12px', border: '1px solid #e2e8f0', backgroundColor: safePage === 1 ? '#f8fafc' : '#fff', color: safePage === 1 ? '#94a3b8' : '#334155', borderRadius: '4px', cursor: safePage === 1 ? 'not-allowed' : 'pointer' }}
                 >
@@ -946,8 +1052,8 @@ function DeAnListPage() {
                     );
                   })}
                 </div>
-                <button 
-                  disabled={safePage === totalPages} 
+                <button
+                  disabled={safePage === totalPages}
                   onClick={() => setCurrentPage(p => p + 1)}
                   style={{ padding: '6px 12px', border: '1px solid #e2e8f0', backgroundColor: safePage === totalPages ? '#f8fafc' : '#fff', color: safePage === totalPages ? '#94a3b8' : '#334155', borderRadius: '4px', cursor: safePage === totalPages ? 'not-allowed' : 'pointer' }}
                 >
@@ -972,7 +1078,7 @@ function DeAnListPage() {
 
             {/* Stepper 11 bước */}
             <div className="dmv2-stepper">
-              <ProjectStepper status={selectedItem.trangThai} />
+              <ProjectStepper status={selectedItem.trangThai} nguonKinhPhi={selectedItem.nguonKinhPhi} />
             </div>
 
             {/* Body - thông tin 2 cột */}
@@ -985,7 +1091,7 @@ function DeAnListPage() {
                 </div>
                 <div className="dm-card-cell">
                   <div className="dm-cell-label">LOẠI ĐỀ ÁN</div>
-                  <div className="dm-cell-value">{selectedItem.tenLoaiDeAn || 'Khuyến công địa phương'}</div>
+                  <div className="dm-cell-value">{selectedItem.tenLoaiDeAn || (selectedItem.nguonKinhPhi === 1 ? 'Khuyến công quốc gia' : 'Khuyến công địa phương')}</div>
                 </div>
                 <div className="dm-card-cell">
                   <div className="dm-cell-label">LĨNH VỰC</div>
@@ -1117,16 +1223,23 @@ function DeAnListPage() {
             <div className="detail-modal-footer-advanced">
               {(() => {
                 const item = selectedItem;
-                const showNop = (isCoSo || isTTKC || isAdmin) && (item.trangThai === 0 || item.trangThai === 3);
+                const showNop = (isCoSo || isTTKC || isAdmin) && (item.trangThai === 0 || item.trangThai === 3 || item.trangThai === 4);
                 const showDuyetSo = (isSo || isAdmin) && item.trangThai === 1;
                 const showDuyetBo = (isBo || isAdmin) && item.trangThai === 2;
+                const showPheDuyetDiaPhuong = (isSo || isAdmin) && (item.trangThai === 9);
                 const showKyHopDong = (isCoSo || isTTKC || isSo || isBo || isAdmin) && item.trangThai === 5;
-                const showNghiemThu = (isCoSo || isTTKC || isAdmin) && item.trangThai === 6;
-                const showBaoCaoTienDo = (isCoSo || isTTKC || isAdmin) && item.trangThai === 6;
-                const showQuyetToan = (isBo || isAdmin) && item.trangThai === 7;
+
+                // BUG-04: Role_So cũng phải được xem báo cáo tiến độ để vào phê duyệt
+                const showBaoCaoTienDo = (isCoSo || isTTKC || isSo || isAdmin) && item.trangThai === 6;
+
+                // RBAC-02: Role_So và TTKC nghiệm thu (Sở chủ trì nghiệm thu)
+                const showNghiemThu = (isSo || isTTKC || isAdmin) && item.trangThai === 6;
+                const showQuyetToan = ((isBo || isAdmin) && item.trangThai === 7 && item.nguonKinhPhi !== 2) || ((isSo || isAdmin) && item.trangThai === 7 && item.nguonKinhPhi === 2);
                 const showKPI = (isSo || isCoSo || isAdmin) && (item.trangThai >= 6);
-                const hasActions = showNop || showDuyetSo || showDuyetBo || showKyHopDong || showNghiemThu || showQuyetToan || showKPI || showBaoCaoTienDo;
-                const isTraVe = showDuyetSo || showDuyetBo;
+                const showEdit = (isCoSo && (item.trangThai === 0 || item.trangThai === 3)) || isAdmin;
+                const showDelete = (isCoSo && item.trangThai === 0) || isAdmin;
+                const hasActions = showNop || showEdit || showDelete || showDuyetSo || showDuyetBo || showPheDuyetDiaPhuong || showKyHopDong || showNghiemThu || showQuyetToan || showKPI || showBaoCaoTienDo;
+                const isTraVe = showDuyetSo || showDuyetBo || showPheDuyetDiaPhuong;
 
                 if (rejecting) return (
                   <div className="reject-form">
@@ -1186,7 +1299,7 @@ function DeAnListPage() {
                               handleModalDuyet();
                             }
                           }}>
-                          <CheckCircle size={15} /> {showDuyetSo ? 'Duyệt thẩm định' : 'Phê duyệt'}
+                          <CheckCircle size={15} /> {showDuyetSo ? 'Duyệt thẩm định' : (showQuyetToan ? 'Quyết toán' : 'Phê duyệt')}
                         </button>
                       )}
 
@@ -1205,7 +1318,8 @@ function DeAnListPage() {
                         <button
                           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '6px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap', backgroundColor: '#fff7ed', border: '1px solid #fed7aa', color: '#ea580c' }}
                           onClick={() => {
-                            setUploadModalData({ type: 'bao-cao-tien-do', item: selectedItem });
+                            setTienDoItem(selectedItem);
+                            setTienDoModalOpen(true);
                             setSelectedItem(null);
                           }}>
                           <FileText size={15} /> Báo cáo tiến độ
@@ -1264,7 +1378,8 @@ function DeAnListPage() {
                 <h3>
                   {uploadModalData.type === 'ky-hop-dong' ? '📄 Tải lên File Hợp đồng' :
                     uploadModalData.type === 'nghiem-thu' ? '✅ Tải lên Biên bản Nghiệm thu' :
-                      uploadModalData.type === 'bao-cao-tien-do' ? '📊 Nộp Báo cáo tiến độ' : '📊 Cập nhật KPI Hiệu quả'}
+                      uploadModalData.type === 'phe-duyet-dia-phuong' ? '📜 Quyết định Phê duyệt (UBND Tỉnh)' :
+                        uploadModalData.type === 'bao-cao-tien-do' ? '📊 Nộp Báo cáo tiến độ' : '📊 Cập nhật KPI Hiệu quả'}
                 </h3>
                 <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
                   Đề án: <strong>{uploadModalData.item?.tenDeAn}</strong>
@@ -1309,20 +1424,34 @@ function DeAnListPage() {
                     e.preventDefault();
                     const formData = new FormData(e.target);
                     const kpiData = {
+                      soCoSoHoTro: Number(formData.get('soCoSoHoTro')),
                       giaTriSanXuat: Number(formData.get('giaTriSanXuat')),
+                      tangNangSuat: Number(formData.get('tangNangSuat')),
                       soMayMocMoi: Number(formData.get('soMayMocMoi')),
+                      QuyTrinhMoi: Number(formData.get('QuyTrinhMoi')),
+                      sanPhamMoi: Number(formData.get('sanPhamMoi')),
                       laoDongMoi: Number(formData.get('laoDongMoi')),
                       mucTangThuNhap: Number(formData.get('mucTangThuNhap')),
+                      sanPhamCNNTTieuBieu: Number(formData.get('sanPhamCNNTTieuBieu')),
+                      thamGiaXucTienTM: Number(formData.get('thamGiaXucTienTM')),
+                      nhanHieuDangKy: Number(formData.get('nhanHieuDangKy')),
                       nopThue: Number(formData.get('nopThue')),
                     };
                     handleKpiSubmit(kpiData);
                   }}>
-                    <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
-                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Giá trị sản xuất (VNĐ)</label><input name="giaTriSanXuat" type="number" required style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
-                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Số lượng máy móc mới</label><input name="soMayMocMoi" type="number" required style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
-                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Lao động tạo mới/đào tạo</label><input name="laoDongMoi" type="number" required style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
-                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Mức tăng thu nhập TB/tháng (VNĐ)</label><input name="mucTangThuNhap" type="number" required style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
-                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Đóng góp NSNN / Nộp thuế (VNĐ)</label><input name="nopThue" type="number" required style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>1. Số lượng cơ sở hỗ trợ</label><input name="soCoSoHoTro" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>2. Giá trị sản xuất (VNĐ)</label><input name="giaTriSanXuat" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>3. Mức tăng năng suất (%)</label><input name="tangNangSuat" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>4. Số lượng máy móc mới</label><input name="soMayMocMoi" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>5. Số lượng quy trình mới</label><input name="QuyTrinhMoi" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>6. Số lượng sản phẩm mới</label><input name="sanPhamMoi" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>7. Lao động đào tạo mới</label><input name="laoDongMoi" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>8. Tăng thu nhập (VNĐ)</label><input name="mucTangThuNhap" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>9. SP CNNT tiêu biểu</label><input name="sanPhamCNNTTieuBieu" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>10. Tham gia Xúc tiến TM</label><input name="thamGiaXucTienTM" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>11. Nhãn hiệu đăng ký</label><input name="nhanHieuDangKy" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>12. Tăng thu NSNN (VNĐ)</label><input name="nopThue" type="number" defaultValue="0" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <button type="submit" disabled={isUploading} className="btn-action-primary" style={{ backgroundColor: '#10b981', border: 'none', padding: '10px 20px', borderRadius: '6px', color: 'white', fontWeight: 500, cursor: 'pointer' }}>
@@ -1378,6 +1507,16 @@ function DeAnListPage() {
           onApprove={handleAppraisalApprove}
           onReject={handleAppraisalReject}
           onRequireEdit={handleAppraisalRequireEdit}
+        />
+      )}
+
+      {/* BUG-04: Modal Lịch sử và Phê duyệt Tiến độ thực hiện */}
+      {tienDoModalOpen && (
+        <TienDoThucHienModal
+          isOpen={tienDoModalOpen}
+          deAn={tienDoItem}
+          onClose={() => { setTienDoModalOpen(false); setTienDoItem(null); }}
+          onRefreshDeAn={fetchData}
         />
       )}
 

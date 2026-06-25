@@ -11,7 +11,12 @@ public interface IFileStorageService
     Task<string> UploadFileAsync(IFormFile file);
 
     /// <summary>
-    /// Lấy đường dẫn (URL) để xem/tải file
+    /// Lấy đường dẫn tĩnh nội bộ (API proxy) để frontend lưu DB
     /// </summary>
     Task<string> GetFileUrlAsync(string fileName);
+
+    /// <summary>
+    /// Tạo URL tạm thời (Presigned URL) có chữ ký để tải file an toàn từ MinIO
+    /// </summary>
+    Task<string> GetPresignedUrlAsync(string fileName);
 }

@@ -1,4 +1,5 @@
 using KhuyenCong.Core.Entities;
+using KhuyenCong.Core.Enums;
 using KhuyenCong.Core.Interfaces;
 using KhuyenCong.Service.DTOs;
 using KhuyenCong.Service.Interfaces;
@@ -33,9 +34,10 @@ public class SanPhamOcopService : ISanPhamOcopService
             (string.IsNullOrEmpty(search) || o.TenSanPham.ToLower().Contains(search.ToLower()) || (o.DonVi != null && o.DonVi.TenDonVi.ToLower().Contains(search.ToLower())))
             && (string.IsNullOrEmpty(capChungNhan) || capChungNhan == "Tất cả" || o.CapChungNhan == capChungNhan)
             && (!phanHangSao.HasValue || phanHangSao.Value == 0 || o.PhanHangSao == phanHangSao.Value)
-            && (!loaiSanPham.HasValue || loaiSanPham.Value == 0 || o.LoaiSanPham == loaiSanPham.Value)
-            && (!trangThais.Any() || trangThais.Contains(o.TrangThai))
-            && (!isSo || o.TrangThai >= 1)
+            // Cast int DTO sang Enum để so sánh đúng với kiểu Enum của Entity
+            && (!loaiSanPham.HasValue || loaiSanPham.Value == 0 || o.LoaiSanPham == (LoaiSanPhamOcop)loaiSanPham.Value)
+            && (!trangThais.Any() || trangThais.Contains((int)o.TrangThai))
+            && (!isSo || o.TrangThai >= TrangThaiSanPhamOcop.DangKyDuThi)
             && (!isCoSo || !userDonViId.HasValue || o.DonViId == userDonViId.Value);
 
         var (items, totalCount) = await _unitOfWork.SanPhamOcops.GetPagedAsync(page, pageSize, filter, includeProperties: "DonVi");
@@ -52,8 +54,9 @@ public class SanPhamOcopService : ISanPhamOcopService
             QuyetDinhCongNhan = o.QuyetDinhCongNhan,
             HinhAnh = o.HinhAnh,
             MoTa = o.MoTa,
-            LoaiSanPham = o.LoaiSanPham,
-            TrangThai = o.TrangThai,
+            // Cast Enum sang int để giữ tương thích ngược với Frontend (truyền int qua JSON)
+            LoaiSanPham = (int)o.LoaiSanPham,
+            TrangThai = (int)o.TrangThai,
             NamBinhChon = o.NamBinhChon
         });
 
@@ -77,8 +80,9 @@ public class SanPhamOcopService : ISanPhamOcopService
             QuyetDinhCongNhan = item.QuyetDinhCongNhan,
             HinhAnh = item.HinhAnh,
             MoTa = item.MoTa,
-            LoaiSanPham = item.LoaiSanPham,
-            TrangThai = item.TrangThai,
+            // Cast Enum sang int để giữ tương thích ngược với Frontend
+            LoaiSanPham = (int)item.LoaiSanPham,
+            TrangThai = (int)item.TrangThai,
             NamBinhChon = item.NamBinhChon
         };
     }
@@ -95,8 +99,9 @@ public class SanPhamOcopService : ISanPhamOcopService
             QuyetDinhCongNhan = dto.QuyetDinhCongNhan ?? string.Empty,
             HinhAnh = dto.HinhAnh,
             MoTa = dto.MoTa,
-            LoaiSanPham = dto.LoaiSanPham,
-            TrangThai = dto.TrangThai,
+            // Cast int DTO sang Enum khi lưu vào Database
+            LoaiSanPham = (LoaiSanPhamOcop)dto.LoaiSanPham,
+            TrangThai = (TrangThaiSanPhamOcop)dto.TrangThai,
             NamBinhChon = dto.NamBinhChon
         };
 
@@ -120,8 +125,9 @@ public class SanPhamOcopService : ISanPhamOcopService
         existing.QuyetDinhCongNhan = dto.QuyetDinhCongNhan ?? string.Empty;
         existing.HinhAnh = dto.HinhAnh;
         existing.MoTa = dto.MoTa;
-        existing.LoaiSanPham = dto.LoaiSanPham;
-        existing.TrangThai = dto.TrangThai;
+        // Cast int DTO sang Enum khi cập nhật vào Database
+        existing.LoaiSanPham = (LoaiSanPhamOcop)dto.LoaiSanPham;
+        existing.TrangThai = (TrangThaiSanPhamOcop)dto.TrangThai;
         existing.NamBinhChon = dto.NamBinhChon;
         existing.UpdatedAt = DateTime.UtcNow;
 

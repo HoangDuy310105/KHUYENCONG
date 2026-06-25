@@ -11,7 +11,7 @@ public class VanBanPhapLuat : BaseEntity
     public TrangThaiVanBan TrangThai { get; set; } = TrangThaiVanBan.ConHieuLuc;
     public string? FileDinhKem { get; set; } // URL to PDF/Docx
     
-    // 1: Văn bản pháp luật, 2: Hội nghị xúc tiến TM
     public int LoaiTaiLieu { get; set; } = 1; 
     public string? NguoiKy { get; set; }
+    public string? CoQuanBanHanh { get; set; } // M03 FIX
 }

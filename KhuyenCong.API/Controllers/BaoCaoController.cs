@@ -24,6 +24,7 @@ public class BaoCaoController : ControllerBase
     }
 
     [HttpGet("export-tt34")]
+    [Authorize(Roles = "Role_So,Role_Bo,Role_Admin,Role_TTKC")]
     public async Task<IActionResult> ExportTT34([FromQuery] int year)
     {
         if (year <= 0) year = DateTime.Now.Year;

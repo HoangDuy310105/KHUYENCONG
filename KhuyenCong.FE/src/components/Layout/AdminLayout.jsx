@@ -161,6 +161,7 @@ function AdminLayout() {
   const [collapsed] = useState(false);
   const [pendingUsers, setPendingUsers] = useState([]);
   const [progressReminders, setProgressReminders] = useState([]);
+  const [myNotifications, setMyNotifications] = useState([]); // C04 FIX
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [detailedUnit, setDetailedUnit] = useState(null);
@@ -194,17 +195,39 @@ function AdminLayout() {
     }
   };
 
+  const fetchMyNotifications = async () => {
+    try {
+      const res = await api.get('/notification');
+      setMyNotifications(res.data || []);
+    } catch (err) {
+      console.error("Lỗi tải notifications", err);
+    }
+  };
+
   useEffect(() => {
+    fetchMyNotifications(); // Load chung cho mọi role
+    const intervalNotif = setInterval(fetchMyNotifications, 20000);
+
     if (roleKey === '4' || roleKey === '3') {
       fetchPendingUsers();
       const interval = setInterval(fetchPendingUsers, 20000);
-      return () => clearInterval(interval);
+      return () => { clearInterval(interval); clearInterval(intervalNotif); };
     } else if (roleKey === '1' || roleKey === '5') {
       fetchProgressReminders();
       const interval = setInterval(fetchProgressReminders, 20000);
-      return () => clearInterval(interval);
+      return () => { clearInterval(interval); clearInterval(intervalNotif); };
     }
+    return () => clearInterval(intervalNotif);
   }, [roleKey]);
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await api.put(`/notification/${id}/read`);
+      fetchMyNotifications();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleApprove = async (id) => {
     try {
@@ -402,6 +425,31 @@ function AdminLayout() {
                         </div>
                       </>
                     )}
+
+                    {/* C04: Hiển thị System Notifications */}
+                    <div className="notif-header" style={{ backgroundColor: '#f0f9ff', color: '#0284c7', borderBottom: '1px solid #bae6fd', borderTop: '1px solid #e2e8f0' }}>
+                      <span style={{ fontWeight: 600 }}>Thông báo hệ thống</span>
+                      <span className="notif-badge-count" style={{ backgroundColor: '#0284c7', color: 'white' }}>{myNotifications.filter(x => !x.isRead).length}</span>
+                    </div>
+                    <div className="notif-list custom-scrollbar" style={{ maxHeight: '250px' }}>
+                      {myNotifications.length === 0 ? (
+                        <div className="notif-empty" style={{ color: '#64748b' }}>
+                          <i className="fa-solid fa-bell-slash" style={{fontSize:'24px', opacity: 0.5}}></i>
+                          Không có thông báo nào.
+                        </div>
+                      ) : (
+                        myNotifications.map(n => (
+                          <div key={n.id} className="notif-item" style={{ cursor: 'pointer', borderLeft: n.isRead ? '3px solid transparent' : '3px solid #0284c7', backgroundColor: n.isRead ? 'transparent' : '#f8fafc' }} onClick={() => { handleMarkAsRead(n.id); navigate('/de-an'); setShowNotifDropdown(false); }}>
+                            <div className="notif-user-info" style={{ width: '100%' }}>
+                              <div className="notif-username" style={{ color: '#334155', fontWeight: 600, fontSize: '13px' }}>{n.tieuDe}</div>
+                              <div className="notif-company" style={{ color: '#64748b', fontSize: '12px', marginTop: '4px' }}>
+                                {n.noiDung}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

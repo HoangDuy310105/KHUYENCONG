@@ -13,14 +13,14 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ADMIN\\.gemini\\antigravity\\scratch\\KhuyenCong\\KhuyenCong.Core\\KhuyenCong.Core.csproj",
+      "projectUniqueName": "c:\\Users\\ADMIN\\.gemini\\antigravity\\scratch\\KhuyenCong\\KhuyenCong.Core\\KhuyenCong.Core.csproj",
       "projectName": "KhuyenCong.Core",
-      "projectPath": "C:\\Users\\ADMIN\\.gemini\\antigravity\\scratch\\KhuyenCong\\KhuyenCong.Core\\KhuyenCong.Core.csproj",
+      "projectPath": "c:\\Users\\ADMIN\\.gemini\\antigravity\\scratch\\KhuyenCong\\KhuyenCong.Core\\KhuyenCong.Core.csproj",
       "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ADMIN\\.gemini\\antigravity\\scratch\\KhuyenCong\\KhuyenCong.Core\\obj\\",
+      "outputPath": "c:\\Users\\ADMIN\\.gemini\\antigravity\\scratch\\KhuyenCong\\KhuyenCong.Core\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\ADMIN\\.gemini\\antigravity\\scratch\\KhuyenCong\\NuGet.Config",
+        "c:\\Users\\ADMIN\\.gemini\\antigravity\\scratch\\KhuyenCong\\NuGet.Config",
         "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"

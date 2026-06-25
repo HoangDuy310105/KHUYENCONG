@@ -26,6 +26,19 @@ public class DeAnController : ControllerBase
         return null;
     }
 
+    private Guid? GetUserDonViId()
+    {
+        var donViIdClaim = User.FindFirst("DonViId")?.Value;
+        if (!string.IsNullOrEmpty(donViIdClaim) && Guid.TryParse(donViIdClaim, out var parsed)) return parsed;
+        return null;
+    }
+
+    private bool IsCoSoRole()
+    {
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        return role == "Role_CoSo" || role == "1";
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] Guid? linhVucId = null, [FromQuery] int? trangThai = null)
     {
@@ -47,6 +60,15 @@ public class DeAnController : ControllerBase
     {
         var result = await _deAnService.GetByIdAsync(id);
         if (result == null) return NotFound();
+
+        // Kiểm tra IDOR: Cơ sở chỉ được xem đề án của chính mình
+        if (IsCoSoRole())
+        {
+            var userDonViId = GetUserDonViId();
+            if (userDonViId == null || result.DonViThuHuongId != userDonViId)
+                return Forbid();
+        }
+
         return Ok(result);
     }
 
@@ -55,8 +77,15 @@ public class DeAnController : ControllerBase
     public async Task<IActionResult> Create([FromBody] DeAnDto dto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-        var result = await _deAnService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        try 
+        {
+            var result = await _deAnService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     [HttpPut("{id}")]
@@ -64,6 +93,17 @@ public class DeAnController : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromBody] DeAnDto dto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        // BUG-02 FIX: Kiểm tra chủ sở hữu nếu là Role_CoSo
+        if (IsCoSoRole())
+        {
+            var existing = await _deAnService.GetByIdAsync(id);
+            if (existing == null) return NotFound();
+            var userDonViId = GetUserDonViId();
+            if (userDonViId == null || existing.DonViThuHuongId != userDonViId)
+                return Forbid(); // Không phải đề án của cơ sở này
+        }
+
         try
         {
             var updated = await _deAnService.UpdateAsync(id, dto);
@@ -80,6 +120,16 @@ public class DeAnController : ControllerBase
     [Authorize(Roles = "Role_CoSo,Role_Admin,Role_TTKC")] // Cấp cơ sở tạo nháp, TTKC hỗ trợ hoặc Admin mới được xóa
     public async Task<IActionResult> Delete(Guid id)
     {
+        // BUG-02 FIX: Kiểm tra chủ sở hữu nếu là Role_CoSo
+        if (IsCoSoRole())
+        {
+            var existing = await _deAnService.GetByIdAsync(id);
+            if (existing == null) return NotFound();
+            var userDonViId = GetUserDonViId();
+            if (userDonViId == null || existing.DonViThuHuongId != userDonViId)
+                return Forbid(); // Không phải đề án của cơ sở này
+        }
+
         try
         {
             var deleted = await _deAnService.DeleteAsync(id);
@@ -96,10 +146,40 @@ public class DeAnController : ControllerBase
     [Authorize(Roles = "Role_CoSo,Role_Admin,Role_TTKC")]
     public async Task<IActionResult> NopHoSo(Guid id)
     {
-        // Trạng thái 1 = Chờ Sở duyệt
-        var updated = await _deAnService.UpdateStatusAsync(id, 1, "Nộp hồ sơ", GetUserId());
-        if (!updated) return NotFound();
-        return Ok(new { Message = "Đã nộp hồ sơ thành công" });
+        var existing = await _deAnService.GetByIdAsync(id);
+        if (existing == null) return NotFound();
+
+        // BUG-02 FIX: Kiểm tra chủ sở hữu nếu là Role_CoSo (Ngăn chặn IDOR)
+        if (IsCoSoRole())
+        {
+            var userDonViId = GetUserDonViId();
+            if (userDonViId == null || existing.DonViThuHuongId != userDonViId)
+                return Forbid(); // Không phải đề án của cơ sở này
+        }
+
+        if (existing.TrangThai != 0 && existing.TrangThai != 3)
+        {
+            return BadRequest(new { Message = "Chỉ có thể nộp Đề án khi đang ở trạng thái Bản Nháp hoặc Yêu cầu bổ sung." });
+        }
+
+        try 
+        {
+            // Trạng thái 1 = Chờ Sở duyệt
+            var updated = await _deAnService.UpdateStatusAsync(id, 1, "Nộp hồ sơ", GetUserId());
+            if (!updated) return NotFound();
+
+            var today = DateTime.UtcNow.AddHours(7);
+            if (today.Month > 5 || (today.Month == 5 && today.Day > 20))
+            {
+                return Ok(new { Message = $"⚠️ Đã nộp hồ sơ thành công (Chế độ Demo). Lưu ý: Thực tế đã quá hạn nộp hồ sơ (20/05/{today.Year})." });
+            }
+
+            return Ok(new { Message = "Đã nộp hồ sơ thành công" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     [HttpPost("{id}/duyet")]
@@ -109,33 +189,86 @@ public class DeAnController : ControllerBase
         var userRoleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
         bool isAdmin = userRoleClaim == "Role_Admin";
 
-        int nextState;
-        switch (currentTrangThai)
-        {
-            case 1: 
-                if (userRoleClaim != "Role_So" && !isAdmin)
-                    return Forbid("Chỉ Sở Công Thương mới có quyền duyệt hồ sơ cấp cơ sở.");
-                nextState = 2; // Chờ Cục thẩm định
-                break;
-            case 2: 
-                if (userRoleClaim != "Role_Bo" && !isAdmin)
-                    return Forbid("Chỉ Cục Công Thương mới có quyền phê duyệt đề án.");
-                nextState = 5; // Đã phê duyệt
-                break;
-            case 7:
-                if (userRoleClaim != "Role_Bo" && !isAdmin)
-                    return Forbid("Chỉ Cục Công Thương mới có quyền quyết toán đề án.");
-                nextState = 8; // Đã quyết toán
-                break;
-            default: 
-                return BadRequest("Trạng thái hiện tại không hợp lệ để duyệt.");
-        }
-        
         try
         {
-            var updated = await _deAnService.UpdateStatusAsync(id, nextState, "Đã duyệt hồ sơ", GetUserId());
+            var deAn = await _deAnService.GetByIdAsync(id);
+            if (deAn == null) return NotFound();
+
+            int targetStatus;
+            string message;
+
+            if (currentTrangThai == 1) // Sở duyệt
+            {
+                if (deAn.NguonKinhPhi == (int)KhuyenCong.Core.Enums.NguonKinhPhi.DiaPhuong)
+                {
+                    // M05: Đề án địa phương -> Sở duyệt xong thì chuyển 9 (Chờ Tỉnh Phê Duyệt), bỏ qua bước Cục
+                    targetStatus = 9; 
+                    message = "Sở đã duyệt (Đề án Địa phương) - Chờ UBND Tỉnh phê duyệt";
+                }
+                else 
+                {
+                    // Đề án quốc gia -> Sở duyệt xong chuyển 2 (Chờ Cục thẩm định)
+                    targetStatus = 2;
+                    message = "Sở đã thẩm định - Chờ Cục thẩm định";
+                }
+            }
+            else if (currentTrangThai == 2) // Cục duyệt
+            {
+                if (deAn.NguonKinhPhi == (int)KhuyenCong.Core.Enums.NguonKinhPhi.DiaPhuong)
+                {
+                    return BadRequest(new { Message = "Luồng Đề án Địa phương không yêu cầu Cục duyệt." });
+                }
+                targetStatus = 5; // Cục duyệt xong thì Phê duyệt KH (5)
+                message = "Cục đã phê duyệt";
+            }
+            else if (currentTrangThai == 7) // Quyết toán
+            {
+                targetStatus = 8; // Chuyển sang Đã Quyết Toán
+                message = "Đã quyết toán và đóng dự án";
+            }
+            else
+            {
+                return BadRequest(new { Message = "Trạng thái hiện tại không hợp lệ để duyệt." });
+            }
+
+            var updated = await _deAnService.UpdateStatusAsync(id, targetStatus, message, GetUserId());
             if (!updated) return NotFound();
-            return Ok(new { Message = "Đã duyệt hồ sơ thành công" });
+
+            return Ok(new { Message = "Đã duyệt hồ sơ" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    [HttpPost("{id}/phe-duyet-dia-phuong")]
+    [Authorize(Roles = "Role_So,Role_Admin")]
+    public async Task<IActionResult> PheDuyetDiaPhuong(Guid id, [FromBody] string fileUrl)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(fileUrl))
+                return BadRequest(new { Message = "Yêu cầu cung cấp đường dẫn file Quyết định phê duyệt." });
+
+            var deAn = await _deAnService.GetByIdAsync(id);
+            if (deAn == null) return NotFound();
+
+            if (deAn.NguonKinhPhi != (int)KhuyenCong.Core.Enums.NguonKinhPhi.DiaPhuong)
+            {
+                return BadRequest(new { Message = "Đây không phải là Đề án Địa phương." });
+            }
+
+            if (deAn.TrangThai != 9)
+            {
+                return BadRequest(new { Message = "Đề án chưa ở trạng thái Chờ UBND Tỉnh phê duyệt." });
+            }
+
+            // Cập nhật lên trạng thái 5 (Đã Phê duyệt KH)
+            var updated = await _deAnService.UpdateStatusAsync(id, 5, $"UBND Tỉnh đã phê duyệt. File QĐ: {fileUrl}", GetUserId());
+            if (!updated) return NotFound();
+
+            return Ok(new { Message = "Cập nhật Quyết định Phê duyệt thành công" });
         }
         catch (Exception ex)
         {
@@ -147,45 +280,81 @@ public class DeAnController : ControllerBase
     [Authorize(Roles = "Role_So,Role_Bo,Role_Admin")]
     public async Task<IActionResult> TraHoSo(Guid id, [FromBody] TraHoSoRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.LyDo))
-            return BadRequest(new { Message = "Bắt buộc phải nhập lý do yêu cầu bổ sung." });
-
-        var ghiChu = request.LyDo;
-        if (!string.IsNullOrWhiteSpace(request.FileUrl))
+        try
         {
-            ghiChu += $"|FILE|{request.FileUrl}";
-        }
+            var existing = await _deAnService.GetByIdAsync(id);
+            if (existing == null) return NotFound();
+            if (existing.TrangThai != 1 && existing.TrangThai != 2)
+                return BadRequest(new { Message = "Chỉ có thể trả hồ sơ khi đang chờ thẩm định." });
 
-        // Trạng thái 3 = Yêu cầu bổ sung
-        var updated = await _deAnService.UpdateStatusAsync(id, 3, ghiChu, GetUserId());
-        if (!updated) return NotFound();
-        return Ok(new { Message = "Đã trả lại hồ sơ yêu cầu bổ sung" });
+            if (string.IsNullOrEmpty(request.LyDo))
+                return BadRequest(new { Message = "Lý do không được để trống" });
+
+            // 3: Yêu cầu bổ sung
+            string message = $"Yêu cầu bổ sung: {request.LyDo}";
+            if (!string.IsNullOrEmpty(request.FileUrl))
+            {
+                message += $" | File đính kèm: {request.FileUrl}";
+            }
+
+            var updated = await _deAnService.UpdateStatusAsync(id, 3, message, GetUserId());
+            if (!updated) return NotFound();
+
+            return Ok(new { Message = "Đã trả hồ sơ để yêu cầu bổ sung" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     [HttpPost("{id}/tu-choi")]
     [Authorize(Roles = "Role_So,Role_Bo,Role_Admin")]
     public async Task<IActionResult> TuChoi(Guid id, [FromBody] string lyDo)
     {
-        if (string.IsNullOrWhiteSpace(lyDo))
-            return BadRequest(new { Message = "Bắt buộc phải nhập lý do từ chối." });
+        try
+        {
+            var existing = await _deAnService.GetByIdAsync(id);
+            if (existing == null) return NotFound();
+            if (existing.TrangThai != 1 && existing.TrangThai != 2)
+                return BadRequest(new { Message = "Chỉ có thể từ chối đề án khi đang chờ thẩm định." });
 
-        // Trạng thái 4 = Bị từ chối
-        var updated = await _deAnService.UpdateStatusAsync(id, 4, lyDo, GetUserId());
-        if (!updated) return NotFound();
-        return Ok(new { Message = "Đã từ chối hồ sơ." });
+            if (string.IsNullOrEmpty(lyDo))
+                return BadRequest("Lý do không được để trống");
+
+            // 4: Bị Từ chối
+            var updated = await _deAnService.UpdateStatusAsync(id, 4, $"Bị từ chối: {lyDo}", GetUserId());
+            if (!updated) return NotFound();
+
+            return Ok(new { Message = "Đã từ chối đề án" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     [HttpPost("{id}/nghiem-thu")]
-    [Authorize(Roles = "Role_CoSo,Role_TTKC,Role_Admin")]
+    // RBAC-02 FIX: Theo tài liệu QLNN Bước 9 và State Machine (Tuần 1, mục 1.4.3 dòng 10):
+    // "Nghiệm thu: Tác nhân = Cán bộ Sở CT" — Sở cóng thương kiểm tra kết quả và thực hiện nghiệm thu.
+    // Xoá Role_CoSo vì cơ sở không tự nghiệm thu được dự án của mình.
+    // TTKC giữ lại vì họ hỗ trợ điều phối và có thể dự nghiệm thu cùng Sở.
+    [Authorize(Roles = "Role_So,Role_TTKC,Role_Admin")]
     public async Task<IActionResult> NghiemThu(Guid id, [FromBody] string fileUrl)
     {
         if (string.IsNullOrWhiteSpace(fileUrl))
-            return BadRequest(new { Message = "Bắt buộc phải đính kèm file Biên bản nghiệm thu." });
+            return BadRequest(new { Message = "Bắt buộc phải đính kèm file Biên bản nghiệm thu có đủ chữ ký các bên." });
 
         try
         {
-            // Trạng thái 7 = Đã nghiệm thu
-            var updated = await _deAnService.UpdateStatusAsync(id, 7, "Đã nghiệm thu. File đính kèm: " + fileUrl, GetUserId());
+            var existing = await _deAnService.GetByIdAsync(id);
+            if (existing == null) return NotFound();
+            if (existing.TrangThai != 6) // 6 = DangThucHien
+                return BadRequest(new { Message = "Đề án phải ở trạng thái Đang thực hiện thì mới được nghiệm thu." });
+
+            // Truyền thẳng fileUrl vào ghiChu để DeAnService nhận dạng
+            // và lưu vào BienBanNghiemThu JSONB (MISSING-03 FIX trong DeAnService)
+            var updated = await _deAnService.UpdateStatusAsync(id, 7, fileUrl, GetUserId());
             if (!updated) return NotFound();
             return Ok(new { Message = "Đã nghiệm thu đề án thành công." });
         }
@@ -196,26 +365,57 @@ public class DeAnController : ControllerBase
     }
 
     [HttpPost("{id}/ky-hop-dong")]
-    [Authorize(Roles = "Role_CoSo,Role_TTKC,Role_So,Role_Bo,Role_Admin")]
+    [Authorize(Roles = "Role_TTKC,Role_So,Role_Bo,Role_Admin")]
     public async Task<IActionResult> KyHopDong(Guid id, [FromBody] string fileUrl)
     {
-        if (string.IsNullOrWhiteSpace(fileUrl))
-            return BadRequest(new { Message = "Bắt buộc phải đính kèm file Hợp đồng." });
+        try
+        {
+            var existing = await _deAnService.GetByIdAsync(id);
+            if (existing == null) return NotFound();
+            if (existing.TrangThai != 5) // 5 = DaPheDuyet
+                return BadRequest(new { Message = "Chỉ có thể ký hợp đồng cho đề án đã được phê duyệt." });
 
-        // Trạng thái 6 = Đang thực hiện (sau khi ký hợp đồng)
-        var updated = await _deAnService.UpdateStatusAsync(id, 6, "Đã ký hợp đồng. File đính kèm: " + fileUrl, GetUserId());
-        if (!updated) return NotFound();
-        return Ok(new { Message = "Đã ký hợp đồng đề án thành công." });
+            if (string.IsNullOrEmpty(fileUrl))
+                return BadRequest(new { Message = "Yêu cầu cung cấp đường dẫn file hợp đồng." });
+
+            // 6: Đang Thực hiện (Sau khi ký HĐ)
+            var updated = await _deAnService.UpdateStatusAsync(id, 6, $"Đã ký hợp đồng. File: {fileUrl}", GetUserId());
+            if (!updated) return NotFound();
+
+            return Ok(new { Message = "Đã cập nhật trạng thái Ký hợp đồng" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     [HttpPost("{id}/quyet-toan")]
-    [Authorize(Roles = "Role_Admin,Role_Bo")]
+    [Authorize(Roles = "Role_Admin,Role_Bo,Role_So")]
     public async Task<IActionResult> QuyetToan(Guid id)
     {
         var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
         {
             return Unauthorized(new { message = "Không xác định được người dùng" });
+        }
+
+        var userRoleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+        // BUG-07 FIX: Chặn quyết toán 2 lần
+        var deAn = await _deAnService.GetByIdAsync(id);
+        if (deAn == null) return NotFound(new { message = "Không tìm thấy Đề án" });
+        if (deAn.TrangThai == 8)
+            return BadRequest(new { message = "Đề án này đã được quyết toán rồi." });
+
+        // LỖ HỔNG 4 FIX: Phân quyền Quyết toán theo Nguồn kinh phí
+        if (userRoleClaim == "Role_So" && deAn.NguonKinhPhi != (int)KhuyenCong.Core.Enums.NguonKinhPhi.DiaPhuong)
+        {
+            return StatusCode(403, new { message = "Sở Công Thương chỉ được phép quyết toán Đề án địa phương." });
+        }
+        if (userRoleClaim == "Role_Bo" && deAn.NguonKinhPhi == (int)KhuyenCong.Core.Enums.NguonKinhPhi.DiaPhuong)
+        {
+            return StatusCode(403, new { message = "Bộ/Cục Công Thương không có thẩm quyền quyết toán Đề án địa phương." });
         }
 
         try 

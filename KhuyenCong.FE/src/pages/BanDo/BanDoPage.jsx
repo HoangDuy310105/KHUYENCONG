@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
+import { Menu, X } from 'lucide-react';
 import L from 'leaflet';
 import api from '../../services/api';
 import './BanDo.css';
@@ -56,6 +57,7 @@ const BanDoPage = () => {
   // Filters
   const [statusFilter, setStatusFilter] = useState('');
   const [linhVucFilter, setLinhVucFilter] = useState('');
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 
   // Lấy dữ liệu Đề án và Lĩnh vực
   useEffect(() => {
@@ -147,62 +149,79 @@ const BanDoPage = () => {
       </div>
 
       {/* Bảng điều khiển nổi */}
-      <div className="bando-floating-panel">
-        <h2 className="panel-title">Phân bổ Đề án</h2>
-        
-        <div className="panel-stats">
-          <div className="stat-box">
-            <div className="stat-label">Tổng số Đề án</div>
-            <div className="stat-value">{filteredDeAns.length}</div>
-          </div>
-          <div className="stat-box">
-            <div className="stat-label">Tổng kinh phí</div>
-            <div className="stat-value highlight">
-              {totalKinhPhi >= 1000000000 
-                ? (totalKinhPhi / 1000000000).toFixed(2) + ' Tỷ'
-                : (totalKinhPhi / 1000000).toFixed(0) + ' Tr'}
+      <div className={`bando-floating-panel ${isPanelCollapsed ? 'collapsed' : ''}`}>
+        {isPanelCollapsed ? (
+          <button className="panel-hamburger-btn" onClick={() => setIsPanelCollapsed(false)}>
+            <Menu size={24} />
+          </button>
+        ) : (
+          <>
+            <div className="panel-header" onClick={() => setIsPanelCollapsed(true)}>
+              <div className="panel-title-wrap">
+                <h2 className="panel-title">Phân bổ Đề án</h2>
+              </div>
+              <button className="panel-toggle-btn">
+                <X size={20} />
+              </button>
             </div>
-          </div>
-        </div>
+            
+            <div className="panel-content">
+            <div className="panel-stats">
+              <div className="stat-box">
+                <div className="stat-label">Tổng số Đề án</div>
+                <div className="stat-value">{filteredDeAns.length}</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-label">Tổng kinh phí</div>
+                <div className="stat-value highlight">
+                  {totalKinhPhi >= 1000000000 
+                    ? (totalKinhPhi / 1000000000).toFixed(2) + ' Tỷ'
+                    : (totalKinhPhi / 1000000).toFixed(0) + ' Tr'}
+                </div>
+              </div>
+            </div>
 
-        <div className="panel-filters">
-          <div className="filter-group">
-            <label>Trạng thái</label>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="">Tất cả trạng thái</option>
-              {Object.entries(STATUS_MAP).map(([k, v]) => (
-                <option key={k} value={k}>{v.label}</option>
-              ))}
-            </select>
-          </div>
+            <div className="panel-filters">
+              <div className="filter-group">
+                <label>Trạng thái</label>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="">Tất cả trạng thái</option>
+                  {Object.entries(STATUS_MAP).map(([k, v]) => (
+                    <option key={k} value={k}>{v.label}</option>
+                  ))}
+                </select>
+              </div>
 
-          <div className="filter-group">
-            <label>Lĩnh vực</label>
-            <select value={linhVucFilter} onChange={(e) => setLinhVucFilter(e.target.value)}>
-              <option value="">Tất cả lĩnh vực</option>
-              {linhVucs.map(lv => (
-                <option key={lv.id} value={lv.id}>{lv.tenLinhVuc}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+              <div className="filter-group">
+                <label>Lĩnh vực</label>
+                <select value={linhVucFilter} onChange={(e) => setLinhVucFilter(e.target.value)}>
+                  <option value="">Tất cả lĩnh vực</option>
+                  {linhVucs.map(lv => (
+                    <option key={lv.id} value={lv.id}>{lv.tenLinhVuc}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-        {/* Legend */}
-        <div className="panel-legend">
-          <div className="legend-title">Chú giải màu sắc</div>
-          <div className="legend-grid">
-            <div className="legend-item"><span className="legend-dot" style={{ background: '#047857' }}></span> Đang thực hiện</div>
-            <div className="legend-item"><span className="legend-dot" style={{ background: '#0369a1' }}></span> Đã phê duyệt</div>
-            <div className="legend-item"><span className="legend-dot" style={{ background: '#6d28d9' }}></span> Đã nghiệm thu</div>
-            <div className="legend-item"><span className="legend-dot" style={{ background: '#1e293b' }}></span> Đã quyết toán</div>
-            <div className="legend-item"><span className="legend-dot" style={{ background: '#d97706' }}></span> Chờ thẩm định</div>
-          </div>
-        </div>
+            {/* Legend */}
+            <div className="panel-legend">
+              <div className="legend-title">Chú giải màu sắc</div>
+              <div className="legend-grid">
+                <div className="legend-item"><span className="legend-dot" style={{ background: '#047857' }}></span> Đang thực hiện</div>
+                <div className="legend-item"><span className="legend-dot" style={{ background: '#0369a1' }}></span> Đã phê duyệt</div>
+                <div className="legend-item"><span className="legend-dot" style={{ background: '#6d28d9' }}></span> Đã nghiệm thu</div>
+                <div className="legend-item"><span className="legend-dot" style={{ background: '#1e293b' }}></span> Đã quyết toán</div>
+                <div className="legend-item"><span className="legend-dot" style={{ background: '#d97706' }}></span> Chờ thẩm định</div>
+              </div>
+            </div>
 
-        {loading && (
-          <div className="panel-loading">
-            <i className="fa-solid fa-circle-notch fa-spin"></i> Đang tải dữ liệu...
+            {loading && (
+              <div className="panel-loading">
+                <i className="fa-solid fa-circle-notch fa-spin"></i> Đang tải dữ liệu...
+              </div>
+            )}
           </div>
+          </>
         )}
       </div>
     </div>

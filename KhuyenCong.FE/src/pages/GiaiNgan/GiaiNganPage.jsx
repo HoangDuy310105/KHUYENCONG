@@ -1,11 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  DollarSign, TrendingUp, CheckCircle, Clock, Plus,
-  ChevronDown, X, FileText, RefreshCw, Search, HelpCircle, Info
+  DollarSign, TrendingUp, CheckCircle, Clock, Plus, X, FileText, RefreshCw, Search, HelpCircle, Info, Download
 } from 'lucide-react';
 import api from '../../services/api';
 import './GiaiNgan.css';
-import CustomDialog from '../../components/CustomDialog/CustomDialog';
 
 // ── FORMAT HELPERS ──────────────────────────────────────────────────────────
 function formatVND(amount) {
@@ -89,7 +87,7 @@ function GiaiNganModal({ deAn, lichSuGiaiNgan, onClose, onRefresh, showAlert, sh
   const [ghiChu, setGhiChu] = useState('');
   const [saving, setSaving] = useState(false);
   const userRole = localStorage.getItem('role') || '';
-  const canEdit = ['Role_So', 'Role_Bo', 'Role_Admin', '2', '3', '4'].includes(userRole);
+  const canEdit = ['Role_So', 'Role_Bo', 'Role_Admin', 'Role_TTKC', '2', '3', '4', '5'].includes(userRole);
 
   const tongTamUng = lichSuGiaiNgan.filter(g => g.loaiGiaiNgan === 1).reduce((s, g) => s + g.soTien, 0);
   const tongQuyetToan = lichSuGiaiNgan.filter(g => g.loaiGiaiNgan === 2).reduce((s, g) => s + g.soTien, 0);
@@ -288,6 +286,9 @@ export default function GiaiNganPage() {
   const [dialog, setDialog] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  const userRole = localStorage.getItem('role') || '';
+  const canEdit = ['Role_So', 'Role_Bo', 'Role_Admin', 'Role_TTKC', '2', '3', '4', '5'].includes(userRole);
+
   const showAlert = msg => new Promise(resolve => setDialog({ isOpen: true, type: 'alert', message: msg, onConfirm: resolve }));
   const showConfirm = msg => new Promise(resolve => setDialog({ isOpen: true, type: 'confirm', message: msg, onConfirm: resolve }));
 
@@ -302,6 +303,22 @@ export default function GiaiNganPage() {
       console.error('Lỗi tải dữ liệu giải ngân:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const res = await api.get('/giai-ngan/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Bang_Ke_Giai_Ngan_${new Date().getTime()}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (err) {
+      console.error(err);
+      showAlert('Lỗi khi xuất file Excel. Vui lòng thử lại sau.');
     }
   };
 
@@ -337,9 +354,16 @@ export default function GiaiNganPage() {
           <h1 className="gn-page-title">Kinh phí & Quyết toán</h1>
           <p className="gn-page-subtitle">Theo dõi giải ngân, tạm ứng và quyết toán các đề án khuyến công</p>
         </div>
-        <button className="gn-btn-refresh" onClick={() => setRefreshTrigger(p => p + 1)}>
-          <RefreshCw size={14} /> Làm mới
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {canEdit && (
+            <button className="gn-btn-refresh" onClick={handleExportExcel} style={{ backgroundColor: '#10b981', color: 'white' }}>
+              <Download size={14} /> Xuất Excel
+            </button>
+          )}
+          <button className="gn-btn-refresh" onClick={() => setRefreshTrigger(p => p + 1)}>
+            <RefreshCw size={14} /> Làm mới
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}

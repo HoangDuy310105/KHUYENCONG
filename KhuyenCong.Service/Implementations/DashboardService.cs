@@ -79,6 +79,41 @@ public class DashboardService : IDashboardService
             });
         }
 
+        // 2: Đề án khuyến công (Ưu tiên tọa độ địa điểm thực hiện đề án, nếu không có mới kế thừa từ Đơn vị)
+        var deAns = await _context.Set<KhuyenCong.Core.Entities.DeAn>()
+            .Include(x => x.DonViThuHuong)
+            .Where(x => x.DonViThuHuong != null)
+            .ToListAsync();
+
+        foreach (var da in deAns)
+        {
+            double lat = da.DonViThuHuong!.ViDo ?? 0;
+            double lng = da.DonViThuHuong.KinhDo ?? 0;
+
+            // Kiểm tra tọa độ riêng biệt của Đề án trong JSON HoSoDinhKem
+            if (da.HoSoDinhKem != null)
+            {
+                var doc = da.HoSoDinhKem.RootElement;
+                if (doc.TryGetProperty("viDo", out var viDoProp) && viDoProp.ValueKind == System.Text.Json.JsonValueKind.Number &&
+                    doc.TryGetProperty("kinhDo", out var kinhDoProp) && kinhDoProp.ValueKind == System.Text.Json.JsonValueKind.Number)
+                {
+                    lat = viDoProp.GetDouble();
+                    lng = kinhDoProp.GetDouble();
+                }
+            }
+
+            if (lat == 0 && lng == 0) continue; // Bỏ qua nếu không có tọa độ nào cả
+
+            markers.Add(new MapMarkerDto
+            {
+                Title = da.TenDeAn,
+                Subtitle = $"Đề án - {da.DonViThuHuong?.TenDonVi}",
+                Lat = lat,
+                Lng = lng,
+                Type = 2
+            });
+        }
+
         // 3: OCOP (sử dụng tọa độ của Đơn vị đăng ký)
         var ocops = await _context.Set<KhuyenCong.Core.Entities.SanPhamOcop>()
             .Include(x => x.DonVi)

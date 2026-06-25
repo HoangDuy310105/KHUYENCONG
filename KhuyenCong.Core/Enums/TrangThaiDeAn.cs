@@ -10,5 +10,6 @@ public enum TrangThaiDeAn
     DaPheDuyet = 5,            // Đã phê duyệt (Giao kế hoạch)
     DangThucHien = 6,          // Đang thực hiện (Ký hợp đồng & Giải ngân)
     DaNghiemThu = 7,           // Đã nghiệm thu
-    DaQuyetToan = 8            // Đã quyết toán (Đóng dự án)
+    DaQuyetToan = 8,           // Đã quyết toán (Đóng dự án)
+    ChoUBNDTinhPheDuyet = 9    // Chờ UBND Tỉnh phê duyệt (Dành riêng cho Đề án Địa phương)
 }

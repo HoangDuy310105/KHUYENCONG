@@ -1,0 +1,627 @@
+﻿
+> khuyencong-fe@0.0.0 lint
+> eslint .
+
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\App.jsx
+  56:35  error  'error' is defined but never used  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\components\CustomDialog\CustomDialog.jsx
+  1:8  error  'React' is defined but never used  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\components\Layout\AdminLayout.jsx
+  169:9  error  'username' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  208:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  206 |
+  207 |   useEffect(() => {
+> 208 |     fetchMyNotifications(); // Load chung cho mß╗ìi role
+      |     ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  209 |     const intervalNotif = setInterval(fetchMyNotifications, 20000);
+  210 |
+  211 |     if (roleKey === '4' || roleKey === '3') {  react-hooks/set-state-in-effect
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\components\Layout\PublicLayout.jsx
+   1:8   error  'React' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         no-unused-vars
+  70:21  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  68 |   const [mobileOpen, setMobileOpen] = useState(false);
+  69 |
+> 70 |   useEffect(() => { setMobileOpen(false); }, [location]);
+     |                     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  71 |
+  72 |   return (
+  73 |     <div className="public-layout">  react-hooks/set-state-in-effect
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\context\DialogContext.jsx
+   1:8   error  'React' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+   6:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-refresh/only-export-components
+  26:24  error  Error: Cannot access variable before it is declared
+
+`closeDialog` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  24 |       message,
+  25 |       type,
+> 26 |       onConfirm: () => closeDialog(),
+     |                        ^^^^^^^^^^^ `closeDialog` accessed before it is declared
+  27 |       onCancel: null,
+  28 |     });
+  29 |   }, []);
+
+  67 |   }, []);
+  68 |
+> 69 |   const closeDialog = () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 70 |     setDialogState((prev) => ({ ...prev, isOpen: false }));
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 71 |   };
+     | ^^^^^ `closeDialog` is declared here
+  72 |
+  73 |   return (
+  74 |     <DialogContext.Provider value={{ showAlert, showConfirm, showPrompt }}>  react-hooks/immutability
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\BanDo\BanDoPage.jsx
+  2:50  error  'useMap' is defined but never used  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Dashboard\CoSoDashboard.jsx
+  1:8  error  'React' is defined but never used  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Dashboard\DashboardPage.jsx
+    7:3   error  'BarChart3' is defined but never used   no-unused-vars
+    8:41  error  'HelpCircle' is defined but never used  no-unused-vars
+    8:53  error  'Info' is defined but never used        no-unused-vars
+  530:14  error  'err' is defined but never used         no-unused-vars
+  547:14  error  'err' is defined but never used         no-unused-vars
+  566:14  error  'err' is defined but never used         no-unused-vars
+  702:85  error  'idx' is defined but never used         no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Dashboard\SoDashboard.jsx
+   1:8   error  'React' is defined but never used                no-unused-vars
+   4:87  error  'Award' is defined but never used                no-unused-vars
+   6:10  error  'Bar' is defined but never used                  no-unused-vars
+  14:10  error  'localOcops' is assigned a value but never used  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\DeAn\DeAnAppraisalModal.jsx
+   1:8  error  'React' is defined but never used                       no-unused-vars
+  56:9  error  'hasFailedCriteria' is assigned a value but never used  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\DeAn\DeAnFormPage.jsx
+   45:10  error  'fileDinhKemInfo' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                no-unused-vars
+   79:15  error  Error: Cannot access variable before it is declared
+
+`setDiaChiState` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  77 |             const parts = data.hoSoDinhKem.diaDiemThucHien.split(' - ');
+  78 |             if (parts.length >= 3) {
+> 79 |               setDiaChiState({ selectedTinh: parts[2], selectedHuyen: parts[1], selectedXa: parts[0] });
+     |               ^^^^^^^^^^^^^^ `setDiaChiState` accessed before it is declared
+  80 |             }
+  81 |           }
+  82 |         } catch (error) {
+
+  88 |   }, [id]);
+  89 |
+> 90 |   const [diaChiState, setDiaChiState] = useState({
+     |                       ^^^^^^^^^^^^^^ `setDiaChiState` is declared here
+  91 |     tinhList: [],
+  92 |     huyenList: [],
+  93 |     xaList: [],  react-hooks/immutability
+  270:27  error  'fileDinhKemInfo' is assigned to itself                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-self-assign
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\DeAn\DeAnListPage.jsx
+    6:29  error    'HelpCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+  466:9   error    'filterRef' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+  483:5   error    Error: Cannot access variable before it is declared
+
+`fetchData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  481 |
+  482 |   useEffect(() => {
+> 483 |     fetchData();
+      |     ^^^^^^^^^ `fetchData` accessed before it is declared
+  484 |     fetchLinhVuc();
+  485 |   }, [refreshTrigger]);
+  486 |
+
+  485 |   }, [refreshTrigger]);
+  486 |
+> 487 |   const fetchData = async () => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 488 |     try {
+      | ^^^^^^^^^
+> 489 |       setLoading(true);
+      ΓÇª
+      | ^^^^^^^^^
+> 506 |     }
+      | ^^^^^^^^^
+> 507 |   };
+      | ^^^^^ `fetchData` is declared here
+  508 |
+  509 |   const fetchLinhVuc = async () => {
+  510 |     try {                                                                                                                                                                             react-hooks/immutability
+  484:5   error    Error: Cannot access variable before it is declared
+
+`fetchLinhVuc` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  482 |   useEffect(() => {
+  483 |     fetchData();
+> 484 |     fetchLinhVuc();
+      |     ^^^^^^^^^^^^ `fetchLinhVuc` accessed before it is declared
+  485 |   }, [refreshTrigger]);
+  486 |
+  487 |   const fetchData = async () => {
+
+  507 |   };
+  508 |
+> 509 |   const fetchLinhVuc = async () => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 510 |     try {
+      | ^^^^^^^^^
+> 511 |       const res = await api.get('/linhvuc');
+      | ^^^^^^^^^
+> 512 |       setLinhVucs(Array.isArray(res.data) ? res.data : []);
+      | ^^^^^^^^^
+> 513 |     } catch { }
+      | ^^^^^^^^^
+> 514 |   };
+      | ^^^^^ `fetchLinhVuc` is declared here
+  515 |
+  516 |   const filtered = data.filter(item => {
+  517 |     const matchSearch = !search ||  react-hooks/immutability
+  485:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-hooks/exhaustive-deps
+  513:13  error    Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-empty
+  555:16  error    'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-unused-vars
+  555:19  error    Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-empty
+  660:14  error    'err' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+  835:14  error    'err' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\DeAn\TienDoThucHienModal.jsx
+    1:8   error    'React' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+    2:68  error    'Download' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-unused-vars
+   50:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  48 |   useEffect(() => {
+  49 |     if (isOpen) {
+> 50 |       loadData();
+     |       ^^^^^^^^ Avoid calling setState() directly within an effect
+  51 |       setMode('list');
+  52 |     }
+  53 |   }, [isOpen, deAn]);  react-hooks/set-state-in-effect
+   53:6   warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
+   82:14  error    'error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+  113:14  error    'error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\DonVi\DonViPage.jsx
+    1:8   error  'React' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+   47:5   error  Error: Cannot access variable before it is declared
+
+`fetchData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  45 |
+  46 |   useEffect(() => {
+> 47 |     fetchData();
+     |     ^^^^^^^^^ `fetchData` accessed before it is declared
+  48 |     fetchProvinces();
+  49 |   }, []);
+  50 |
+
+  49 |   }, []);
+  50 |
+> 51 |   const fetchData = async () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 52 |     try {
+     | ^^^^^^^^^
+> 53 |       setLoading(true);
+     ΓÇª
+     | ^^^^^^^^^
+> 82 |     }
+     | ^^^^^^^^^
+> 83 |   };
+     | ^^^^^ `fetchData` is declared here
+  84 |
+  85 |   const fetchProvinces = async () => {
+  86 |     try {                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/immutability
+   48:5   error  Error: Cannot access variable before it is declared
+
+`fetchProvinces` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  46 |   useEffect(() => {
+  47 |     fetchData();
+> 48 |     fetchProvinces();
+     |     ^^^^^^^^^^^^^^ `fetchProvinces` accessed before it is declared
+  49 |   }, []);
+  50 |
+  51 |   const fetchData = async () => {
+
+  83 |   };
+  84 |
+> 85 |   const fetchProvinces = async () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 86 |     try {
+     | ^^^^^^^^^
+> 87 |       const res = await fetch('https://provinces.open-api.vn/api/p/');
+     | ^^^^^^^^^
+> 88 |       const data = await res.json();
+     | ^^^^^^^^^
+> 89 |       setProvinces(data || []);
+     | ^^^^^^^^^
+> 90 |     } catch (e) {
+     | ^^^^^^^^^
+> 91 |       console.error('Lß╗ùi tß║úi danh mß╗Ñc Tß╗ënh:', e);
+     | ^^^^^^^^^
+> 92 |     }
+     | ^^^^^^^^^
+> 93 |   };
+     | ^^^^^ `fetchProvinces` is declared here
+  94 |
+  95 |   const handleTinhChange = async (code) => {
+  96 |     setFormData(prev => ({ ...prev, maTinh: code, maHuyen: '', maXa: '' }));  react-hooks/immutability
+  151:16  error  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-unused-vars
+  151:19  error  Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-empty
+  158:16  error  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-unused-vars
+  158:19  error  Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-empty
+  238:14  error  'err' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+  249:16  error  'err' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+  427:38  error  'index' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\GiaiNgan\GiaiNganPage.jsx
+    1:31  error  'useRef' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+    4:3   error  'ChevronDown' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-unused-vars
+    8:8   error  'CustomDialog' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+  294:21  error  Error: Cannot access variable before it is declared
+
+`fetchData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  292 |   const showConfirm = msg => new Promise(resolve => setDialog({ isOpen: true, type: 'confirm', message: msg, onConfirm: resolve }));
+  293 |
+> 294 |   useEffect(() => { fetchData(); }, [refreshTrigger]);
+      |                     ^^^^^^^^^ `fetchData` accessed before it is declared
+  295 |
+  296 |   const fetchData = async () => {
+  297 |     setLoading(true);
+
+  294 |   useEffect(() => { fetchData(); }, [refreshTrigger]);
+  295 |
+> 296 |   const fetchData = async () => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 297 |     setLoading(true);
+      | ^^^^^^^^^^^^^^^^^^^^^
+> 298 |     try {
+      ΓÇª
+      | ^^^^^^^^^^^^^^^^^^^^^
+> 305 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^
+> 306 |   };
+      | ^^^^^ `fetchData` is declared here
+  307 |
+  308 |   const handleExportExcel = async () => {
+  309 |     try {  react-hooks/immutability
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Kpi\KpiPage.jsx
+   74:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  72 |   useEffect(() => {
+  73 |     if (!selectedDeAnId) {
+> 74 |       setMetrics(defaultMetrics);
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  75 |       return;
+  76 |     }
+  77 |  react-hooks/set-state-in-effect
+  103:6  warning  React Hook useEffect has a missing dependency: 'defaultMetrics'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-hooks/exhaustive-deps
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\LinhVuc\LinhVucPage.jsx
+   1:8  error    'React' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                no-unused-vars
+  39:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  37 |
+  38 |   useEffect(() => {
+> 39 |     fetchData();
+     |     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  40 |   }, []);
+  41 |
+  42 |   const filteredData = data.filter(item =>   react-hooks/set-state-in-effect
+  40:6  warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Login\LoginPage.jsx
+  3:48  error  'HelpCircle' is defined but never used  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\NguoiDung\NguoiDungPage.jsx
+    1:8   error  'React' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         no-unused-vars
+    2:17  error  'Search' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+   57:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  55 |
+  56 |   useEffect(() => {
+> 57 |     fetchUsers();
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  58 |     fetchDonVis();
+  59 |   }, []);
+  60 |  react-hooks/set-state-in-effect
+  129:16  error  'error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         no-unused-vars
+  145:16  error  'error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\NhatKy\NhatKyHeThongPage.jsx
+   1:8  error  'React' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-unused-vars
+  23:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  21 |
+  22 |     useEffect(() => {
+> 23 |         fetchLogs();
+     |         ^^^^^^^^^ Avoid calling setState() directly within an effect
+  24 |     }, []);
+  25 |
+  26 |     const getTrangThaiBadge = (trangThai) => {  react-hooks/set-state-in-effect
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Ocop\OcopPage.jsx
+    2:73  error    'Calendar' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+   41:12  error    'total' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+   98:9   error    Error: Cannot access variable before it is declared
+
+`fetchProducts` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+   96 |
+   97 |     useEffect(() => {
+>  98 |         fetchProducts();
+      |         ^^^^^^^^^^^^^ `fetchProducts` accessed before it is declared
+   99 |         fetchDonVis();
+  100 |     }, [activeTab, capChungNhanFilter]);
+  101 |
+
+  100 |     }, [activeTab, capChungNhanFilter]);
+  101 |
+> 102 |     const fetchProducts = async () => {
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 103 |         try {
+      | ^^^^^^^^^^^^^
+> 104 |             const token = localStorage.getItem('token');
+      ΓÇª
+      | ^^^^^^^^^^^^^
+> 123 |         }
+      | ^^^^^^^^^^^^^
+> 124 |     };
+      | ^^^^^^^ `fetchProducts` is declared here
+  125 |
+  126 |     const fetchDonVis = async () => {
+  127 |         try {                            react-hooks/immutability
+   99:9   error    Error: Cannot access variable before it is declared
+
+`fetchDonVis` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+   97 |     useEffect(() => {
+   98 |         fetchProducts();
+>  99 |         fetchDonVis();
+      |         ^^^^^^^^^^^ `fetchDonVis` accessed before it is declared
+  100 |     }, [activeTab, capChungNhanFilter]);
+  101 |
+  102 |     const fetchProducts = async () => {
+
+  124 |     };
+  125 |
+> 126 |     const fetchDonVis = async () => {
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 127 |         try {
+      | ^^^^^^^^^^^^^
+> 128 |             const response = await api.get('/DonVi?page=1&pageSize=100');
+      ΓÇª
+      | ^^^^^^^^^^^^^
+> 141 |         }
+      | ^^^^^^^^^^^^^
+> 142 |     };
+      | ^^^^^^^ `fetchDonVis` is declared here
+  143 |
+  144 |     const handleSearch = (e) => {
+  145 |         if (e.key === 'Enter') {  react-hooks/immutability
+  100:8   warning  React Hook useEffect has missing dependencies: 'fetchDonVis' and 'fetchProducts'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+  104:19  error    'token' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+  210:19  error    'token' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Profile\ProfilePage.jsx
+  1:8   error  'React' is defined but never used  no-unused-vars
+  2:85  error  'Mail' is defined but never used   no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Public\GuidePage.jsx
+  1:8  error  'React' is defined but never used  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Public\HomePage.jsx
+   1:8   error  'React' is defined but never used               no-unused-vars
+   4:36  error  'BarChart3' is defined but never used           no-unused-vars
+   4:47  error  'ScrollText' is defined but never used          no-unused-vars
+   5:25  error  'CheckCircle2' is defined but never used        no-unused-vars
+   7:22  error  'Play' is defined but never used                no-unused-vars
+   7:28  error  'Tag' is defined but never used                 no-unused-vars
+   7:33  error  'MapPin' is defined but never used              no-unused-vars
+  40:9   error  'LINH_VUCS' is assigned a value but never used  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Public\NewsPage.jsx
+  29:5  error    Error: Cannot access variable before it is declared
+
+`fetchData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  27 |
+  28 |   React.useEffect(() => {
+> 29 |     fetchData();
+     |     ^^^^^^^^^ `fetchData` accessed before it is declared
+  30 |   }, [page, activeCategory, search]);
+  31 |
+  32 |   const fetchData = async () => {
+
+  30 |   }, [page, activeCategory, search]);
+  31 |
+> 32 |   const fetchData = async () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 33 |     setLoading(true);
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 34 |     try {
+     ΓÇª
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 46 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 47 |   };
+     | ^^^^^ `fetchData` is declared here
+  48 |
+  49 |   const featured = data[0];
+  50 |   const rest = data.slice(1);  react-hooks/immutability
+  30:6  warning  React Hook React.useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Public\TraCuuPage.jsx
+    1:8   error    'React' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     no-unused-vars
+    2:18  error    'ChevronDown' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-unused-vars
+   41:10  error    'totalCount' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-unused-vars
+   45:5   error    Error: Cannot access variable before it is declared
+
+`fetchData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  43 |
+  44 |   useEffect(() => {
+> 45 |     fetchData();
+     |     ^^^^^^^^^ `fetchData` accessed before it is declared
+  46 |   }, [page, searchTrigger]);
+  47 |
+  48 |   const fetchData = async () => {
+
+  46 |   }, [page, searchTrigger]);
+  47 |
+> 48 |   const fetchData = async () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 49 |     setLoading(true);
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 50 |     try {
+     ΓÇª
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 65 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 66 |   };
+     | ^^^^^ `fetchData` is declared here
+  67 |
+  68 |   const handleSearch = (e) => {
+  69 |     if (e.key === 'Enter') {  react-hooks/immutability
+   46:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/exhaustive-deps
+  181:21  error    'isConHieuLuc' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\QuyetToan\QuyetToanPage.jsx
+  28:20  error  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+  43:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  41 |
+  42 |   useEffect(() => {
+> 43 |     fetchDeAns();
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  44 |   }, []);
+  45 |
+  46 |   const handleQuyetToan = async (deAn) => {  react-hooks/set-state-in-effect
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\Register\RegisterPage.jsx
+  8:9  error  'navigate' is assigned a value but never used  no-unused-vars
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\TinTuc\TinTucAdminPage.jsx
+  38:5  error    Error: Cannot access variable before it is declared
+
+`fetchData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  36 |
+  37 |   useEffect(() => {
+> 38 |     fetchData();
+     |     ^^^^^^^^^ `fetchData` accessed before it is declared
+  39 |   }, [page, keyword]);
+  40 |   
+  41 |   const fetchData = async () => {
+
+  39 |   }, [page, keyword]);
+  40 |   
+> 41 |   const fetchData = async () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 42 |     setLoading(true);
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 43 |     try {
+     ΓÇª
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 53 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 54 |   };
+     | ^^^^^ `fetchData` is declared here
+  55 |
+  56 |   const handleSearch = (e) => {
+  57 |     setKeyword(e.target.value);  react-hooks/immutability
+  39:6  warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
+
+C:\Users\ADMIN\.gemini\antigravity\scratch\KhuyenCong\KhuyenCong.FE\src\pages\VanBan\VanBanPage.jsx
+  39:5  error    Error: Cannot access variable before it is declared
+
+`fetchData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  37 |
+  38 |   useEffect(() => {
+> 39 |     fetchData();
+     |     ^^^^^^^^^ `fetchData` accessed before it is declared
+  40 |   }, [page, activeTab, keyword]);
+  41 |   
+  42 |   const fetchData = async () => {
+
+  40 |   }, [page, activeTab, keyword]);
+  41 |   
+> 42 |   const fetchData = async () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 43 |     setLoading(true);
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 44 |     try {
+     ΓÇª
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 54 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^
+> 55 |   };
+     | ^^^^^ `fetchData` is declared here
+  56 |
+  57 |   const handleSearch = (e) => {
+  58 |     setKeyword(e.target.value);  react-hooks/immutability
+  40:6  warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-hooks/exhaustive-deps
+
+Γ£û 103 problems (94 errors, 9 warnings)
+

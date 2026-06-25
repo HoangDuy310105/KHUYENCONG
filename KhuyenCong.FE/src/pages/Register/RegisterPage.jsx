@@ -23,6 +23,51 @@ function RegisterPage() {
   const [useVideoBg, setUseVideoBg] = useState(true);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  // Quản lý API Địa chỉ 3 cấp
+  const [diaChiState, setDiaChiState] = useState({
+    tinhList: [], huyenList: [], xaList: [],
+    selectedTinh: '', selectedHuyen: '', selectedXa: '', soNha: '',
+    loadingHuyen: false, loadingXa: false,
+  });
+
+  useEffect(() => {
+    fetch('https://provinces.open-api.vn/api/?depth=1')
+      .then(r => r.json())
+      .then(data => setDiaChiState(prev => ({ ...prev, tinhList: data })))
+      .catch(() => {});
+  }, []);
+
+  const handleTinhChange = async (e) => {
+    const code = e.target.value;
+    setDiaChiState(prev => ({
+      ...prev, selectedTinh: code, selectedHuyen: '', selectedXa: '',
+      huyenList: [], xaList: [], loadingHuyen: !!code
+    }));
+    if (!code) return;
+    try {
+      const res = await fetch(`https://provinces.open-api.vn/api/p/${code}?depth=2`);
+      const data = await res.json();
+      setDiaChiState(prev => ({ ...prev, huyenList: data.districts || [], loadingHuyen: false }));
+    } catch { setDiaChiState(prev => ({ ...prev, loadingHuyen: false })); }
+  };
+
+  const handleHuyenChange = async (e) => {
+    const code = e.target.value;
+    setDiaChiState(prev => ({
+      ...prev, selectedHuyen: code, selectedXa: '',
+      xaList: [], loadingXa: !!code
+    }));
+    if (!code) return;
+    try {
+      const res = await fetch(`https://provinces.open-api.vn/api/d/${code}?depth=2`);
+      const data = await res.json();
+      setDiaChiState(prev => ({ ...prev, xaList: data.wards || [], loadingXa: false }));
+    } catch { setDiaChiState(prev => ({ ...prev, loadingXa: false })); }
+  };
+
+  const handleXaChange = (e) => setDiaChiState(prev => ({ ...prev, selectedXa: e.target.value }));
+  const handleSoNhaChange = (e) => setDiaChiState(prev => ({ ...prev, soNha: e.target.value }));
+
   // Hiệu ứng nền 3D Canvas Particles
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -158,6 +203,11 @@ function RegisterPage() {
       return;
     }
 
+    if (!diaChiState.selectedTinh || !diaChiState.selectedHuyen || !diaChiState.selectedXa) {
+      setError('Vui lòng chọn đầy đủ địa chỉ Tỉnh - Huyện - Xã.');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Mật khẩu xác nhận không khớp.');
       return;
@@ -170,13 +220,51 @@ function RegisterPage() {
 
     setLoading(true);
     try {
+      // Ghép chuỗi địa chỉ
+      const tenTinh = diaChiState.tinhList.find(t => String(t.code) === diaChiState.selectedTinh)?.name || '';
+      const tenHuyen = diaChiState.huyenList.find(h => String(h.code) === diaChiState.selectedHuyen)?.name || '';
+      const tenXa = diaChiState.xaList.find(x => String(x.code) === diaChiState.selectedXa)?.name || '';
+      const fullDiaChi = [diaChiState.soNha, tenXa, tenHuyen, tenTinh].filter(Boolean).join(', ');
+
+      // Gọi API Geocoding (OpenStreetMap) để lấy tọa độ thật với cơ chế Fallback (Lùi bước)
+      let viDo = null;
+      let kinhDo = null;
+      try {
+        const fetchGeo = async (query) => {
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`);
+          return await geoRes.json();
+        };
+
+        // 1. Thử tìm chính xác: Xã, Huyện, Tỉnh
+        let geoData = await fetchGeo(`${tenXa}, ${tenHuyen}, ${tenTinh}, Việt Nam`);
+        
+        // 2. Nếu không ra, lùi về tìm: Huyện, Tỉnh
+        if (!geoData || geoData.length === 0) {
+          geoData = await fetchGeo(`${tenHuyen}, ${tenTinh}, Việt Nam`);
+        }
+
+        // 3. Nếu vẫn không ra, lùi về tìm: Tỉnh
+        if (!geoData || geoData.length === 0) {
+          geoData = await fetchGeo(`${tenTinh}, Việt Nam`);
+        }
+
+        if (geoData && geoData.length > 0) {
+          viDo = parseFloat(geoData[0].lat);
+          kinhDo = parseFloat(geoData[0].lon);
+        }
+      } catch (geoErr) {
+        console.warn("Geocoding failed, fallback to random coords.", geoErr);
+      }
+
       const res = await api.post('/auth/register', {
         username,
         password,
         tenDonVi,
         maSoThue,
-        diaChi: form.diaChi,
-        loaiDonVi: parseInt(form.loaiDonVi)
+        diaChi: fullDiaChi,
+        loaiDonVi: parseInt(form.loaiDonVi),
+        viDo: viDo,
+        kinhDo: kinhDo
       });
 
       if (res.data.success) {
@@ -195,8 +283,8 @@ function RegisterPage() {
         <canvas ref={canvasRef} className="login-3d-canvas" />
 
         {useVideoBg && (
-          <video className="login-bg-video" autoPlay loop muted playsInline poster="https://i.pinimg.com/736x/08/f1/3c/08f13c008eda9fd26bb08fa3e7ba58bc.jpg">
-            <source src="https://ak.picdn.net/shutterstock/videos/3795116773/preview/preview.mp4" type="video/mp4" />
+          <video className="login-bg-video" autoPlay loop muted playsInline>
+            <source src="/videos/login-bg-new2.mp4" type="video/mp4" />
           </video>
         )}
 
@@ -234,8 +322,8 @@ function RegisterPage() {
       <canvas ref={canvasRef} className="login-3d-canvas" />
 
       {useVideoBg && (
-        <video className="login-bg-video" autoPlay loop muted playsInline poster="https://i.pinimg.com/736x/08/f1/3c/08f13c008eda9fd26bb08fa3e7ba58bc.jpg">
-          <source src="https://ak.picdn.net/shutterstock/videos/3795116773/preview/preview.mp4" type="video/mp4" />
+        <video className="login-bg-video" autoPlay loop muted playsInline>
+          <source src="/videos/login-bg-new2.mp4" type="video/mp4" />
         </video>
       )}
 
@@ -359,34 +447,72 @@ function RegisterPage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '12px' }}>
-              <div className="form-group">
-                <label>Mã số thuế (*)</label>
-                <div className="input-with-icon">
-                  <FileText size={16} className="input-icon" />
-                  <input
-                    className="form-input"
-                    type="text"
-                    name="maSoThue"
-                    placeholder="Mã số doanh nghiệp..."
-                    value={form.maSoThue}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+            <div className="form-group">
+              <label>Mã số thuế (*)</label>
+              <div className="input-with-icon">
+                <FileText size={16} className="input-icon" />
+                <input
+                  className="form-input"
+                  type="text"
+                  name="maSoThue"
+                  placeholder="Mã số doanh nghiệp..."
+                  value={form.maSoThue}
+                  onChange={handleChange}
+                  required
+                />
               </div>
+            </div>
 
-              <div className="form-group">
-                <label>Địa chỉ trụ sở</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+              <div className="form-group" style={{ marginBottom: '8px' }}>
+                <label>Địa chỉ trụ sở (*)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                  <select 
+                    value={diaChiState.selectedTinh} 
+                    onChange={handleTinhChange} 
+                    className="form-input" 
+                    required 
+                    style={{ padding: '10px 8px', fontSize: '13px', textOverflow: 'ellipsis', cursor: 'pointer' }}
+                    title={diaChiState.tinhList.find(t => String(t.code) === diaChiState.selectedTinh)?.name || '-- Tỉnh / Thành phố --'}
+                  >
+                    <option value="">-- Tỉnh / Thành phố --</option>
+                    {diaChiState.tinhList.map(t => <option key={t.code} value={t.code}>{t.name}</option>)}
+                  </select>
+                  
+                  <select 
+                    value={diaChiState.selectedHuyen} 
+                    onChange={handleHuyenChange} 
+                    disabled={!diaChiState.selectedTinh || diaChiState.loadingHuyen} 
+                    className="form-input" 
+                    required 
+                    style={{ padding: '10px 8px', fontSize: '13px', textOverflow: 'ellipsis', cursor: 'pointer' }}
+                    title={diaChiState.huyenList.find(h => String(h.code) === diaChiState.selectedHuyen)?.name || '-- Quận / Huyện --'}
+                  >
+                    <option value="">{diaChiState.loadingHuyen ? 'Đang tải...' : '-- Quận / Huyện --'}</option>
+                    {diaChiState.huyenList.map(h => <option key={h.code} value={h.code}>{h.name}</option>)}
+                  </select>
+                  
+                  <select 
+                    value={diaChiState.selectedXa} 
+                    onChange={handleXaChange} 
+                    disabled={!diaChiState.selectedHuyen || diaChiState.loadingXa} 
+                    className="form-input" 
+                    required 
+                    style={{ padding: '10px 8px', fontSize: '13px', textOverflow: 'ellipsis', cursor: 'pointer' }}
+                    title={diaChiState.xaList.find(x => String(x.code) === diaChiState.selectedXa)?.name || '-- Xã / Phường --'}
+                  >
+                    <option value="">{diaChiState.loadingXa ? 'Đang tải...' : '-- Xã / Phường --'}</option>
+                    {diaChiState.xaList.map(x => <option key={x.code} value={x.code}>{x.name}</option>)}
+                  </select>
+                </div>
                 <div className="input-with-icon">
                   <MapPin size={16} className="input-icon" />
                   <input
                     className="form-input"
                     type="text"
-                    name="diaChi"
-                    placeholder="Số nhà, đường, tỉnh..."
-                    value={form.diaChi}
-                    onChange={handleChange}
+                    placeholder="Số nhà, tên đường (Tùy chọn)..."
+                    value={diaChiState.soNha}
+                    onChange={handleSoNhaChange}
                   />
                 </div>
               </div>

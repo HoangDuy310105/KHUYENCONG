@@ -32,11 +32,7 @@ public class MinioStorageService : IFileStorageService
         {
             var mkBktArgs = new MakeBucketArgs().WithBucket(_bucketName);
             await _minioClient.MakeBucketAsync(mkBktArgs);
-
-            // Tùy chọn: Set policy public cho bucket để Frontend có thể lấy file không cần auth
-            string policy = $"{{\"Version\":\"2012-10-17\",\"Statement\":[{{\"Action\":[\"s3:GetObject\"],\"Effect\":\"Allow\",\"Principal\":{{\"AWS\":[\"*\"]}},\"Resource\":[\"arn:aws:s3:::{_bucketName}/*\"]}}]}}";
-            var setPolicyArgs = new SetPolicyArgs().WithBucket(_bucketName).WithPolicy(policy);
-            await _minioClient.SetPolicyAsync(setPolicyArgs);
+            // BUG-12 FIX: Bỏ SetPolicy public để đảm bảo an toàn bảo mật, bucket sẽ là Private
         }
 
         // Tạo tên file ngẫu nhiên an toàn
@@ -59,8 +55,20 @@ public class MinioStorageService : IFileStorageService
         return safeName; // Hoặc trả về URL đầy đủ tùy cấu hình
     }
 
-    public async Task<string> GetFileUrlAsync(string fileName)
+    public Task<string> GetFileUrlAsync(string fileName)
     {
-        return $"http://localhost:9000/{_bucketName}/{fileName}";
+        // BUG-12 FIX: Trả về API nội bộ của Backend để chuyển hướng (Proxy), không lộ URL của MinIO
+        // API này (FileController) sẽ yêu cầu [Authorize] và trả về Presigned URL
+        return Task.FromResult($"/api/file/download/{fileName}");
+    }
+
+    public async Task<string> GetPresignedUrlAsync(string fileName)
+    {
+        var presignedArgs = new PresignedGetObjectArgs()
+            .WithBucket(_bucketName)
+            .WithObject(fileName)
+            .WithExpiry(60 * 60); // Link hết hạn sau 1 giờ
+
+        return await _minioClient.PresignedGetObjectAsync(presignedArgs);
     }
 }

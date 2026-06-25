@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FileText, Calendar, Coins, Users, Save, X, FolderOpen } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FileText, Calendar, Coins, Users, Save, X, FolderOpen, Send } from 'lucide-react';
 import api from '../../services/api';
 import { useDialog } from '../../context/DialogContext';
 import confetti from 'canvas-confetti';
 import './DeAn.css';
 
 function DeAnFormPage() {
-  const { showAlert } = useDialog();
+  const { showAlert, showConfirm } = useDialog();
   const navigate = useNavigate();
+  const { id } = useParams();
   const userRole = localStorage.getItem('role');
   const userDonViId = localStorage.getItem('donViId');
   const userTenDonVi = localStorage.getItem('tenDonVi');
@@ -40,7 +41,52 @@ function DeAnFormPage() {
     donVis: []
   });
 
+  // BUG-03 FIX: Lưu thông tin file cũ khi đang trong chế độ Sửa
+  const [fileDinhKemInfo, setFileDinhKemInfo] = useState(null);
+
   // Địa điểm: 3 cấp hành chính
+  
+  useEffect(() => {
+    if (id) {
+      const fetchDeAn = async () => {
+        try {
+          const res = await api.get('/dean/' + id);
+          const data = res.data.data || res.data;
+          setFormData(prev => ({
+            ...prev,
+            tenDeAn: data.tenDeAn || '',
+            loaiDeAnId: data.loaiDeAnId || '',
+            linhVucId: data.linhVucId || '',
+            donViThuHuongId: data.donViThuHuongId || '',
+            donViThiCongId: data.donViThiCongId || '',
+            thoiGianBatDau: data.thoiGianBatDau ? data.thoiGianBatDau.split('T')[0] : '',
+            thoiGianKetThuc: data.thoiGianKetThuc ? data.thoiGianKetThuc.split('T')[0] : '',
+            kinhPhiDuKien: data.kinhPhiDuKien || '',
+            kinhPhiThucHien: data.kinhPhiThucHien || '',
+            donViThiCongText: data.hoSoDinhKem?.donViThiCong || '',
+            donViGiamSat: data.hoSoDinhKem?.donViGiamSat || '',
+            thoiGianGiamSat: data.hoSoDinhKem?.thoiGianGiamSat ? data.hoSoDinhKem.thoiGianGiamSat.split('T')[0] : '',
+            diaDiemThucHien: data.hoSoDinhKem?.diaDiemThucHien || '',
+            thoiGianNghiemThu: data.hoSoDinhKem?.thoiGianNghiemThu ? data.hoSoDinhKem.thoiGianNghiemThu.split('T')[0] : '',
+            nguonKinhPhi: data.hoSoDinhKem?.nguonKinhPhi || ''
+          }));
+          if (data.hoSoDinhKem?.fileHoSo) {
+            setFileDinhKemInfo(data.hoSoDinhKem.fileHoSo);
+          }
+          if (data.hoSoDinhKem?.diaDiemThucHien) {
+            const parts = data.hoSoDinhKem.diaDiemThucHien.split(' - ');
+            if (parts.length >= 3) {
+              setDiaChiState({ selectedTinh: parts[2], selectedHuyen: parts[1], selectedXa: parts[0] });
+            }
+          }
+        } catch (error) {
+          console.error("Lỗi khi tải đề án:", error);
+        }
+      };
+      fetchDeAn();
+    }
+  }, [id]);
+
   const [diaChiState, setDiaChiState] = useState({
     tinhList: [],
     huyenList: [],
@@ -137,10 +183,27 @@ function DeAnFormPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    let finalValue = value;
+    if (name === 'kinhPhiDuKien' || name === 'kinhPhiThucHien') {
+      finalValue = value.replace(/\D/g, ''); // Xóa tất cả các ký tự không phải là số
+    }
+    setFormData(prev => {
+      const newData = { ...prev, [name]: finalValue };
+      
+      // Tự động đồng bộ NGUỒN KINH PHÍ khi chọn LOẠI ĐỀ ÁN
+      if (name === 'loaiDeAnId') {
+        const selectedLoai = danhMucs.loaiDeAns.find(l => l.id === finalValue);
+        if (selectedLoai && selectedLoai.tenLoai) {
+          const tenLoaiLower = selectedLoai.tenLoai.toLowerCase();
+          if (tenLoaiLower.includes('địa phương')) {
+            newData.nguonKinhPhi = 'Ngân sách Địa phương';
+          } else if (tenLoaiLower.includes('quốc gia') || tenLoaiLower.includes('trung ương')) {
+            newData.nguonKinhPhi = 'Ngân sách Trung ương';
+          }
+        }
+      }
+      return newData;
+    });
   };
 
   const [uploading, setUploading] = useState(false);
@@ -153,7 +216,7 @@ function DeAnFormPage() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, actionType = 'save') => {
     e.preventDefault();
     
     // --- Bổ sung Validation chi tiết ---
@@ -169,7 +232,7 @@ function DeAnFormPage() {
       showAlert('Lỗi', 'Vui lòng chọn Lĩnh vực thực hiện.', 'warning');
       return;
     }
-    if (!diaChiState.selectedTinh || !diaChiState.selectedHuyen || !diaChiState.selectedXa) {
+    if ((!diaChiState.selectedTinh || !diaChiState.selectedHuyen || !diaChiState.selectedXa) && !formData.diaDiemThucHien) {
       showAlert('Lỗi', 'Vui lòng chọn đầy đủ 3 cấp hành chính cho Địa điểm thực hiện (Tỉnh - Huyện - Xã).', 'warning');
       return;
     }
@@ -189,22 +252,73 @@ function DeAnFormPage() {
       showAlert('Lỗi', 'Cú pháp sai: Thời gian bắt đầu không được lớn hơn Thời gian kết thúc.', 'warning');
       return;
     }
+    
+    // UX FIX: Validation 20/05 ngay tại Frontend để tránh chờ upload file
+    if (!id) {
+      const today = new Date();
+      if (today.getMonth() + 1 > 5 || (today.getMonth() + 1 === 5 && today.getDate() > 20)) {
+        const isOk = await showConfirm('Hết hạn', `Đã quá thời hạn nộp hồ sơ (Hạn cuối: 20/05/${today.getFullYear()}). Hệ thống hiện đang chạy ở chế độ Demo, bạn có muốn tiếp tục nộp không?`, 'warning');
+        if (!isOk) return;
+      }
+    }
     // -----------------------------------
 
     try {
       setUploading(true);
-      let fileDinhKemInfo = null;
+      let fileDinhKemInfoLocal = null;
 
       // Xử lý upload file thật lên Server
       if (formData.fileHoSo) {
         const formDataUpload = new FormData();
         formDataUpload.append('file', formData.fileHoSo);
         
-        const uploadRes = await api.post('/file/upload', formDataUpload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        fileDinhKemInfo = uploadRes.data;
+        const uploadRes = await api.post('/file/upload', formDataUpload);
+        fileDinhKemInfoLocal = uploadRes.data;
+      } else if (id) {
+        // BUG-03 FIX: Nếu đang sửa và không chọn file mới, giữ lại file cũ đã load từ API
+        fileDinhKemInfoLocal = fileDinhKemInfo; // lấy từ state
       }
+
+      // Bắt đầu Geocoding lấy tọa độ thực tế của Đề án
+      const tenTinh = diaChiState.tinhList.find(t => String(t.code) === diaChiState.selectedTinh)?.name || '';
+      const tenHuyen = diaChiState.huyenList.find(h => String(h.code) === diaChiState.selectedHuyen)?.name || '';
+      const tenXa = diaChiState.xaList.find(x => String(x.code) === diaChiState.selectedXa)?.name || '';
+
+      let viDo = null;
+      let kinhDo = null;
+      try {
+        const fetchGeo = async (query) => {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+          try {
+            const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`, {
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return await geoRes.json();
+          } catch (e) {
+            clearTimeout(timeoutId);
+            return null;
+          }
+        };
+        let geoData = await fetchGeo(`${tenXa}, ${tenHuyen}, ${tenTinh}, Việt Nam`);
+        if (!geoData || geoData.length === 0) geoData = await fetchGeo(`${tenHuyen}, ${tenTinh}, Việt Nam`);
+        if (!geoData || geoData.length === 0) geoData = await fetchGeo(`${tenTinh}, Việt Nam`);
+
+        if (geoData && geoData.length > 0) {
+          viDo = parseFloat(geoData[0].lat);
+          kinhDo = parseFloat(geoData[0].lon);
+        }
+      } catch (geoErr) {
+        console.warn("Geocoding failed for DeAn.", geoErr);
+      }
+
+      // Parse NguonKinhPhi to integer
+      let nkpInt = 2; // Default Địa phương
+      if (formData.nguonKinhPhi === 'Ngân sách Trung ương') nkpInt = 1;
+      else if (formData.nguonKinhPhi === 'Ngân sách Địa phương') nkpInt = 2;
+      else if (formData.nguonKinhPhi === 'Ngân sách Kết hợp') nkpInt = 3;
+      else nkpInt = 4; // Khác
 
       const payload = {
         tenDeAn: formData.tenDeAn,
@@ -213,6 +327,7 @@ function DeAnFormPage() {
         donViThuHuongId: formData.donViThuHuongId,
         donViThiCongId: formData.donViThiCongId || null,
         kinhPhiDuKien: Number(formData.kinhPhiDuKien),
+        nguonKinhPhi: nkpInt,
         thoiGianBatDau: formData.thoiGianBatDau || null,
         thoiGianKetThuc: formData.thoiGianKetThuc || null,
         hoSoDinhKem: {
@@ -223,17 +338,36 @@ function DeAnFormPage() {
           donViThiCong: formData.donViThiCongText,
           donViGiamSat: formData.donViGiamSat,
           thoiGianGiamSat: formData.thoiGianGiamSat || null,
-          fileHoSo: fileDinhKemInfo // Lưu thông tin file đã upload
+          fileHoSo: fileDinhKemInfoLocal, // Lưu thông tin file đã upload
+          viDo: viDo,
+          kinhDo: kinhDo
         }
       };
 
-      await api.post('/dean', payload);
+      let currentId = id;
+      if (id) { 
+        await api.put('/dean/' + id, payload); 
+      } else { 
+        const res = await api.post('/dean', payload);
+        currentId = res.data?.id || res.data?.data?.id || res.data?.Id || res.data?.data?.Id;
+      }
+
+      if (actionType === 'save_and_submit' && currentId) {
+        try {
+          await api.post(`/dean/${currentId}/nop`);
+          showAlert('Thành công', 'Hồ sơ đã được lưu và Nộp trình duyệt thành công!', 'success');
+        } catch (err) {
+          showAlert('Cảnh báo', 'Lưu thành công nhưng lỗi khi nộp: ' + (err.response?.data?.Message || err.message), 'warning');
+        }
+      } else {
+        showAlert('Thành công', id ? 'Cập nhật đề án thành công!' : 'Tạo mới đề án thành công!', 'success');
+      }
+
       confetti({
         particleCount: 150,
         spread: 80,
         origin: { y: 0.6 }
       });
-      showAlert('Thành công', 'Khởi tạo đề án thành công!', 'success');
       navigate('/de-an');
     } catch (error) {
       console.error('Lỗi khi lưu đề án:', error);
@@ -250,7 +384,7 @@ function DeAnFormPage() {
         <div className="dean-modal-header">
           <div className="header-title-wrapper">
             <FolderOpen size={20} className="header-icon" />
-            <h2>Lập hồ sơ Đề án Khuyến công</h2>
+            <h2>{id ? 'Cập nhật Đề án Khuyến công' : 'Lập hồ sơ Đề án Khuyến công'}</h2>
           </div>
           <button className="close-btn" onClick={() => navigate('/de-an')}>
             <X size={20} />
@@ -428,12 +562,11 @@ function DeAnFormPage() {
                 <div className="form-group">
                   <label>KINH PHÍ DỰ KIẾN (VNĐ) (*)</label>
                   <input 
-                    type="number" 
+                    type="text" 
                     name="kinhPhiDuKien" 
-                    value={formData.kinhPhiDuKien} 
+                    value={formData.kinhPhiDuKien ? new Intl.NumberFormat('en-US').format(formData.kinhPhiDuKien) : ''} 
                     onChange={handleChange} 
                     required 
-                    min="0"
                     placeholder="0"
                     className="number-input"
                   />
@@ -441,11 +574,10 @@ function DeAnFormPage() {
                 <div className="form-group">
                   <label>KINH PHÍ THỰC HIỆN (VNĐ)</label>
                   <input 
-                    type="number" 
+                    type="text" 
                     name="kinhPhiThucHien" 
-                    value={formData.kinhPhiThucHien} 
+                    value={formData.kinhPhiThucHien ? new Intl.NumberFormat('en-US').format(formData.kinhPhiThucHien) : ''} 
                     onChange={handleChange} 
-                    min="0"
                     placeholder="Điền sau khi thực hiện"
                     className="number-input"
                   />
@@ -532,10 +664,28 @@ function DeAnFormPage() {
                 <button type="button" className="btn-cancel" onClick={() => navigate('/de-an')} disabled={uploading}>
                   Hủy
                 </button>
-                <button type="submit" className="btn-submit" disabled={uploading}>
+                <button 
+                  type="button" 
+                  className="btn-action-primary" 
+                  onClick={(e) => handleSubmit(e, 'save')} 
+                  disabled={uploading}
+                  style={{ backgroundColor: '#64748b', padding: '10px 20px', borderRadius: '6px', color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                >
                   <Save size={16} style={{ marginRight: '6px' }} />
-                  {uploading ? 'ĐANG TẢI LÊN & LƯU...' : 'NỘP HỒ SƠ'}
+                  {uploading ? 'ĐANG LƯU...' : 'LƯU NHÁP'}
                 </button>
+                {(userRole === '1' || userRole === 'Role_CoSo') && (
+                  <button 
+                    type="button" 
+                    className="btn-submit" 
+                    onClick={(e) => handleSubmit(e, 'save_and_submit')} 
+                    disabled={uploading}
+                    style={{ display: 'flex', alignItems: 'center' }}
+                  >
+                    <Send size={16} style={{ marginRight: '6px' }} />
+                    {uploading ? 'ĐANG XỬ LÝ...' : 'LƯU & NỘP HỒ SƠ'}
+                  </button>
+                )}
               </div>
             </div>
 

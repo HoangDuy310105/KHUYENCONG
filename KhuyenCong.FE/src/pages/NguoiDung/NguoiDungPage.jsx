@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Search, Plus, Edit2, Lock, Unlock, Inbox } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Plus, Edit2, Lock, Unlock, Inbox } from 'lucide-react';
 import api from '../../services/api';
 import { useDialog } from '../../context/DialogContext';
 import './NguoiDung.css';

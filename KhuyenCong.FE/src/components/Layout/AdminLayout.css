@@ -46,6 +46,9 @@
 
 .sidebar-container {
   background-color: #11101D;
+  background-image: linear-gradient(rgba(17, 16, 29, 0.85), rgba(17, 16, 29, 0.85)), url('/images/oriental_clouds.png');
+  background-size: 400px;
+  background-position: center left;
   border-right: none;
   display: flex;
   flex-direction: column;
@@ -172,7 +175,7 @@
 
 .sidebar-footer {
   padding: 10px 0;
-  background: #11101D;
+  background: transparent;
   flex-shrink: 0;
   margin-top: auto;
 }
